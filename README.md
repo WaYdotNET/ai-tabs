@@ -48,8 +48,8 @@ To stop the snapshots, run `ai-tabs uninstall`. The database, the backups and th
 
 Run `ai-tabs` without a command to open the restore screen. In iTerm2, the logo shows for a moment first (setting `splash`):
 
-- The top bar shows the ai-tabs name. Press `?` for the full logo and the list of all the keys.
-- The left panel shows the snapshots, newest first. 📌 marks a pinned snapshot. A yellow line shows how many panes opened and closed.
+- The screen uses the colors of the logo. The top bar shows the small logo. Press `?` for the list of all the keys.
+- The left panel shows the snapshots, newest first. 📌 marks a pinned snapshot. A gold line shows how many panes opened and closed.
 - The right panel shows the tabs of the selected snapshot. A bar in the tab color comes first, then the tab title, the session title and the folder. A green `●` marks an agent session that still runs.
 - After a reboot or a crash, the screen starts on the last snapshot from before it, until you restore it.
 

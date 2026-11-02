@@ -5,6 +5,7 @@ from rich.markup import escape
 
 from .agents import is_still_running
 from .config import HOME
+from .logo import CYAN, GOLD, GREEN, PURPLE
 from .models import Pane, Tab, positioned_tabs
 from .store import PIN_LABELS, Snapshot, Summary
 
@@ -17,14 +18,14 @@ def snapshot_markup(summary: Summary, newest: bool) -> str:
     The third line shows only for a pinned snapshot, or when panes opened or closed: a crash
     shows as many closed panes.
     """
-    latest = "  [cyan]latest[/cyan]" if newest else ""
+    latest = f"  [{CYAN}]latest[/]" if newest else ""
     lines = [f"[bold]{summary.created_at:%H:%M:%S}[/bold]  [dim]{summary.created_at:%m-%d}[/dim]{latest}",
              f"[dim]{summary.tabs} tabs · {summary.agents} agents[/dim]"]
     notes = []
     if summary.pinned:
-        notes.append(f"[magenta]📌 {PIN_LABELS.get(summary.pinned, summary.pinned)}[/magenta]")
+        notes.append(f"[{PURPLE}]📌 {PIN_LABELS.get(summary.pinned, summary.pinned)}[/]")
     if summary.opened or summary.closed:
-        notes.append(f"[yellow]+{summary.opened} −{summary.closed}[/yellow]")
+        notes.append(f"[{GOLD}]+{summary.opened} −{summary.closed}[/]")
     if notes:
         lines.append(" · ".join(notes))
     return "\n".join(lines)
@@ -60,7 +61,7 @@ def pane_lines(pane: Pane, heading: str) -> list[str]:
     agent = pane.agent
     if agent is None:
         return [f"[dim]  shell · {escape(short_path(pane.path))}[/dim]"]
-    state = "[green]●[/green]" if is_still_running(agent) else " "
+    state = f"[{GREEN}]●[/]" if is_still_running(agent) else " "
     detail = f"{state} [dim]{agent.kind} · {escape(short_path(agent.cwd))}[/dim]"
     title = [f"  {escape(agent.title)}"] if agent.title and agent.title != heading else []
     return title + [detail]
@@ -88,6 +89,6 @@ def print_sessions(snapshot: Snapshot) -> None:
     summary = snapshot.summary
     pin = f" · 📌 {PIN_LABELS.get(summary.pinned, summary.pinned)}" if summary.pinned else ""
     console.print(f"[bold]Snapshot {summary.id}[/bold] · {summary.tabs} tabs · {summary.agents} agents{pin}"
-                  "   [green]●[/green] still runs\n")
+                  f"   [{GREEN}]●[/] still runs\n")
     for position, tab in positioned_tabs(snapshot.windows):
         console.print(tab_markup(position, tab) + "\n", highlight=False)

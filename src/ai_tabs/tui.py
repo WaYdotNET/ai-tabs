@@ -12,6 +12,7 @@ from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.screen import ModalScreen
+from textual.theme import Theme
 from textual.widgets import Footer, Input, Label, ListItem, ListView, OptionList, Static
 from textual.widgets.option_list import Option
 
@@ -28,24 +29,41 @@ from .config import (
 )
 from .diff import render_changes
 from .display import snapshot_markup, tab_markup, tab_matches
-from .logo import logo_compact, logo_full
+from .logo import BLUE, CYAN, GOLD, GREEN, NAVY, NAVY_DEEP, NAVY_LIGHT, PURPLE, RED, WHITE, logo_compact
 from .models import Tab, Window, positioned_tabs
 from .plan import default_positions, plan_text, resolve_duplicates
 
-KEYS_HELP = """\
-↑ ↓        move in the list
-tab        switch between the snapshots and the tabs
-space      select or clear the tab
-a          select all the visible tabs, or none
-/          search tabs, sessions and folders (esc leaves the search)
-enter      restore the selected tabs
-c          show the commands that restore runs
-h          show the changes that the snapshot records
-p          pin the snapshot, or remove its pin (pinned snapshots are never deleted)
-e          export the snapshot as Markdown to export_dir
-o          change the settings
-s          take a snapshot now
-q, esc     quit"""
+KEYS = [
+    ("↑ ↓", "move in the list"),
+    ("tab", "switch between the snapshots and the tabs"),
+    ("space", "select or clear the tab"),
+    ("a", "select all the visible tabs, or none"),
+    ("/", "search tabs, sessions and folders (esc leaves the search)"),
+    ("enter", "restore the selected tabs"),
+    ("c", "show the commands that restore runs"),
+    ("h", "show the changes that the snapshot records"),
+    ("p", "pin the snapshot, or remove its pin (pinned snapshots are never deleted)"),
+    ("e", "export the snapshot as Markdown to export_dir"),
+    ("o", "change the settings"),
+    ("s", "take a snapshot now"),
+    ("q, esc", "quit"),
+]
+
+# The cursor is the logo blue with white text: white on the logo cyan is hard to read.
+THEME = Theme(name="ai-tabs", primary=CYAN, secondary=PURPLE, accent=GOLD, warning=GOLD, error=RED,
+              success=GREEN, foreground=WHITE, background=NAVY_DEEP, surface=NAVY, panel=NAVY_LIGHT, dark=True,
+              variables={"block-cursor-background": BLUE, "block-cursor-foreground": WHITE,
+                         "block-cursor-blurred-background": NAVY_LIGHT})
+
+
+def keys_help() -> Text:
+    """Return the list of keys, with the keys in the logo cyan."""
+    lines = Text()
+    for key, action in KEYS:
+        lines.append(f"{key:<10} ", style=f"bold {CYAN}")
+        lines.append(f"{action}\n")
+    lines.rstrip()
+    return lines
 
 
 class SettingsScreen(ModalScreen[bool]):
@@ -107,7 +125,7 @@ def tab_prompt(position: str, tab: Tab, checked: bool) -> Text:
 
     The blank last line separates the entries.
     """
-    box = "[bold green]◉[/]" if checked else "[dim]○[/]"
+    box = f"[bold {GREEN}]◉[/]" if checked else "[dim]○[/]"
     first, *rest = tab_markup(position, tab).split("\n")
     return Text.from_markup("\n".join([f"{box} {first}", *(f"  {line}" for line in rest), ""]))
 
@@ -205,10 +223,12 @@ class RestoreApp(App[RestoreChoice]):
         return not isinstance(self.screen, ModalScreen)
 
     def on_mount(self) -> None:
-        """Show the tabs of the starting snapshot and put the focus on them."""
+        """Use the logo colors, show the tabs of the starting snapshot and put the focus on them."""
+        self.register_theme(THEME)
+        self.theme = THEME.name
         self.query_one("#snapshots").border_title = "Snapshots"
         mode = "" if self.open_tabs else " · dry run: Enter prints the commands"
-        self.query_one("#right").border_title = f"Tabs   [green]●[/green] still runs{mode}"
+        self.query_one("#right").border_title = f"Tabs   [{GREEN}]●[/] still runs{mode}"
         if self.summaries:
             self.load_snapshot(self.summaries[self.current_index()].id)
         self.query_one("#tabs").focus()
@@ -304,7 +324,7 @@ class RestoreApp(App[RestoreChoice]):
 
     def action_keys(self) -> None:
         """Show all the keys of the restore screen."""
-        self.push_screen(InfoScreen("Keys", Group(logo_full(), Text(""), Text(KEYS_HELP))))
+        self.push_screen(InfoScreen("Keys", Group(logo_compact(), Text(""), keys_help())))
 
     async def action_pin(self) -> None:
         """Pin the current snapshot, or remove its pin."""

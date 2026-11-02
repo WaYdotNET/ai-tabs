@@ -1,15 +1,21 @@
-"""The ai-tabs logo as colored text, for the restore screen and any Rich console."""
+"""The ai-tabs logo as colored text, and the colors of the logo that the restore screen uses."""
 
 from rich.console import Group
 from rich.text import Text
 
-CYAN = "#19DCEB"
+# Colors sampled from assets/logo.png. PURPLE is lighter than the logo purple, which is too
+# dark to read on the navy background.
+CYAN = "#01EAFC"
 PURPLE = "#AE72F5"
-GREEN = "#40E789"
-GOLD = "#FFBD28"
+GREEN = "#52FA74"
+GOLD = "#FCB60D"
 RED = "#FF6464"
-WHITE = "#EAF2FF"
+WHITE = "#FBFBFC"
 MUTED = "#7187A6"
+NAVY = "#081637"
+NAVY_DEEP = "#010A2D"
+NAVY_LIGHT = "#092852"
+BLUE = "#023468"
 
 
 def styled_line(*parts: tuple[str, str]) -> Text:
@@ -21,7 +27,7 @@ def styled_line(*parts: tuple[str, str]) -> Text:
 
 
 def logo_compact() -> Text:
-    """Return the one-line logo for the top bar of the restore screen."""
+    """Return the one-line logo for the top bar and the keys window of the restore screen."""
     return styled_line(("▰", CYAN), ("▰", PURPLE), ("▰", GREEN), ("  >_ ", f"bold {WHITE}"),
                        ("↻ ", f"bold {GOLD}"), ("ai-", f"bold {WHITE}"), ("tabs", f"bold {CYAN}"))
 
