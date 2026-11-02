@@ -102,7 +102,7 @@ def settings() -> Settings:
         history_days=int(config.get("history_days", 30)),
         snapshot_interval=int(config.get("snapshot_interval", 300)),
         splash=bool(config.get("splash", True)),
-        theme=str(config.get("theme", "auto")),
+        theme=str(config.get("theme", "light")),
     )
 
 
