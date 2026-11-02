@@ -1,0 +1,412 @@
+{
+  "schema_version": "ai-attribution/1.2.0",
+  "base_commit_sha": "88e180871dda7e27735454d89d939f1486f5c36d",
+  "sessions": {
+    "01a19c67-8b23-7647-94a4-129e31e15632": {
+      "agent": {
+        "tool": "omp",
+        "model": "anthropic/claude-opus-5-5"
+      },
+      "human_author": "Carlo Bertini \u003cwaydotnet@gmail.com\u003e"
+    },
+    "01a19e66-aa03-7124-8424-8b25eb249296": {
+      "agent": {
+        "tool": "omp",
+        "model": "anthropic/claude-opus-5-5"
+      },
+      "human_author": "Carlo Bertini \u003cwaydotnet@gmail.com\u003e"
+    }
+  },
+  "files": {
+    "README.md": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::3112f8bd2230": [
+        37,
+        "64-65",
+        84,
+        86,
+        91,
+        93,
+        "95-98",
+        "100-108",
+        110,
+        112,
+        "114-123"
+      ],
+      "01a19c67-8b23-7647-94a4-129e31e15632::9b734008da5e": [
+        "1-36",
+        "38-63",
+        "66-83",
+        85,
+        "87-90",
+        92,
+        94,
+        99,
+        109,
+        111,
+        113,
+        "124-144"
+      ]
+    },
+    "pyproject.toml": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::34a9b58013ab": [
+        "12-13"
+      ]
+    },
+    "src/ai_tabs/cli.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::3375317fb78b": [
+        15,
+        17,
+        "22-25",
+        27,
+        203,
+        "219-221",
+        "223-233",
+        260,
+        "283-284",
+        "286-288",
+        "303-341"
+      ],
+      "01a19c67-8b23-7647-94a4-129e31e15632::d4caf5bba794": [
+        222
+      ]
+    },
+    "src/ai_tabs/config.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::3e06a7bdc593": [
+        1,
+        "3-6",
+        17,
+        "35-52",
+        54,
+        57,
+        "60-61",
+        "64-65",
+        81,
+        "90-99",
+        "101-125",
+        "128-137",
+        139,
+        "141-150"
+      ]
+    },
+    "src/ai_tabs/iterm.py": {
+      "01a19e66-aa03-7124-8424-8b25eb249296::2e4198c9ca1c": [
+        3,
+        "5-6",
+        "30-33",
+        "35-40",
+        "42-55",
+        "58-60",
+        "76-78",
+        "83-86",
+        "88-91"
+      ]
+    },
+    "src/ai_tabs/markdown.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::27b079a295f5": [
+        1,
+        "3-5",
+        13,
+        "39-40",
+        "61-62",
+        "64-67",
+        "70-71",
+        "73-77",
+        82,
+        "88-92",
+        "95-99"
+      ]
+    },
+    "src/ai_tabs/opener.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::0c3850b2d461": [
+        10,
+        "220-229",
+        234
+      ],
+      "01a19e66-aa03-7124-8424-8b25eb249296::736aa90d54ff": [
+        "122-123"
+      ],
+      "01a19e66-aa03-7124-8424-8b25eb249296::7bcdf1214aaf": [
+        126
+      ],
+      "01a19e66-aa03-7124-8424-8b25eb249296::cb6a67d776c1": [
+        "3-7",
+        9,
+        "12-14",
+        "16-31",
+        "34-89",
+        "103-104",
+        110,
+        "114-121",
+        "124-125",
+        "127-162",
+        165,
+        "167-173",
+        176,
+        180,
+        "182-183",
+        "185-187",
+        "190-195",
+        "198-219",
+        231,
+        "236-238",
+        "240-241"
+      ]
+    },
+    "src/ai_tabs/plan.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::f4a1e8d55abc": [
+        "36-45",
+        53,
+        55,
+        "59-60",
+        "63-64"
+      ]
+    },
+    "src/ai_tabs/snapshot.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::79a3a30a54ec": [
+        29,
+        32,
+        35,
+        "37-38",
+        "41-42",
+        "44-45",
+        "55-56"
+      ],
+      "01a19c67-8b23-7647-94a4-129e31e15632::ac0cbe855de2": [
+        "20-21"
+      ]
+    },
+    "src/ai_tabs/store.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::ac0cbe855de2": [
+        19
+      ],
+      "01a19c67-8b23-7647-94a4-129e31e15632::b47e2faa72ed": [
+        15,
+        134,
+        138
+      ]
+    },
+    "src/ai_tabs/tui.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::9382d6b1479e": [
+        "338-353"
+      ],
+      "01a19c67-8b23-7647-94a4-129e31e15632::ba05bfc0b59b": [
+        "17-18",
+        "34-35",
+        "40-88",
+        "155-156"
+      ]
+    },
+    "tests/test_config_models_diff.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::1a96b13f1296": [
+        1,
+        5,
+        17,
+        20,
+        22,
+        27,
+        "29-32",
+        36,
+        "38-43",
+        "45-65"
+      ]
+    },
+    "tests/test_export_and_settings_screen.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::3c9244e5ed6e": [
+        "1-11",
+        "13-76",
+        "78-79"
+      ],
+      "01a19c67-8b23-7647-94a4-129e31e15632::d4caf5bba794": [
+        12,
+        77
+      ]
+    },
+    "tests/test_layout.py": {
+      "01a19e66-aa03-7124-8424-8b25eb249296::1290be0f33aa": [
+        "1-73"
+      ]
+    },
+    "tests/test_snapshot.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::33ecb7277c5f": [
+        70,
+        72,
+        "78-81",
+        84
+      ]
+    },
+    "tests/test_tui.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::ed60e9f1c46e": [
+        "1-69"
+      ]
+    }
+  },
+  "deletions": {
+    "README.md": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::3112f8bd2230": {
+        "total": 16
+      }
+    },
+    "src/ai_tabs/cli.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::3375317fb78b": {
+        "total": 20
+      },
+      "01a19c67-8b23-7647-94a4-129e31e15632::948e91426f78": {
+        "total": 1
+      },
+      "01a19c67-8b23-7647-94a4-129e31e15632::c30f452d9820": {
+        "total": 1
+      },
+      "01a19c67-8b23-7647-94a4-129e31e15632::d4caf5bba794": {
+        "total": 1
+      }
+    },
+    "src/ai_tabs/config.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::3e06a7bdc593": {
+        "total": 27
+      }
+    },
+    "src/ai_tabs/iterm.py": {
+      "01a19e66-aa03-7124-8424-8b25eb249296::2e4198c9ca1c": {
+        "total": 10
+      }
+    },
+    "src/ai_tabs/markdown.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::27b079a295f5": {
+        "total": 48
+      }
+    },
+    "src/ai_tabs/opener.py": {
+      "01a19e66-aa03-7124-8424-8b25eb249296::736aa90d54ff": {
+        "total": 3
+      },
+      "01a19e66-aa03-7124-8424-8b25eb249296::7bcdf1214aaf": {
+        "total": 2
+      },
+      "01a19e66-aa03-7124-8424-8b25eb249296::cb6a67d776c1": {
+        "total": 19
+      }
+    },
+    "src/ai_tabs/plan.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::f4a1e8d55abc": {
+        "total": 12,
+        "human": 12
+      }
+    },
+    "src/ai_tabs/snapshot.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::79a3a30a54ec": {
+        "total": 15
+      },
+      "01a19c67-8b23-7647-94a4-129e31e15632::ac0cbe855de2": {
+        "total": 1
+      }
+    },
+    "src/ai_tabs/store.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::ac0cbe855de2": {
+        "total": 1
+      },
+      "01a19c67-8b23-7647-94a4-129e31e15632::b47e2faa72ed": {
+        "total": 3
+      }
+    },
+    "src/ai_tabs/tui.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::ba05bfc0b59b": {
+        "total": 1
+      }
+    },
+    "tests/test_config_models_diff.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::1a96b13f1296": {
+        "total": 7
+      }
+    },
+    "tests/test_export_and_settings_screen.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::d4caf5bba794": {
+        "total": 3
+      }
+    },
+    "tests/test_snapshot.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::33ecb7277c5f": {
+        "total": 9
+      },
+      "01a19c67-8b23-7647-94a4-129e31e15632::ac0cbe855de2": {
+        "total": 1
+      }
+    }
+  },
+  "turns": {
+    "01a19c67-8b23-7647-94a4-129e31e15632::0c3850b2d461": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::1a96b13f1296": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::27b079a295f5": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::3112f8bd2230": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::3375317fb78b": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::33ecb7277c5f": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::34a9b58013ab": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::3c9244e5ed6e": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::3e06a7bdc593": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::79a3a30a54ec": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::9382d6b1479e": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::948e91426f78": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::9b734008da5e": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::ac0cbe855de2": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::b47e2faa72ed": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::ba05bfc0b59b": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::c30f452d9820": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::d4caf5bba794": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::ed60e9f1c46e": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::f4a1e8d55abc": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19e66-aa03-7124-8424-8b25eb249296::1290be0f33aa": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19e66-aa03-7124-8424-8b25eb249296::2e4198c9ca1c": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19e66-aa03-7124-8424-8b25eb249296::736aa90d54ff": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19e66-aa03-7124-8424-8b25eb249296::7bcdf1214aaf": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19e66-aa03-7124-8424-8b25eb249296::cb6a67d776c1": {
+      "model": "anthropic/claude-opus-5-5"
+    }
+  }
+}
