@@ -52,7 +52,6 @@ Run `ai-tabs` without a command to open the restore screen. In iTerm2, the logo 
 - The left panel shows the snapshots, newest first. 📌 marks a pinned snapshot. A yellow line shows how many panes opened and closed.
 - The right panel shows the tabs of the selected snapshot. A bar in the tab color comes first, then the tab title, the session title and the folder. A green `●` marks an agent session that still runs.
 - After a reboot or a crash, the screen starts on the last snapshot from before it, until you restore it.
-- With `tui_font_size`, the iTerm2 session uses that text size while the restore screen is open, and gets its own font back when the screen closes.
 
 | Key | Action |
 |---|---|
@@ -111,7 +110,6 @@ A setting takes its value from, in order of priority:
 | `history_days` | `30` | How many days the unpinned snapshots stay |
 | `snapshot_interval` | `300` | Seconds between two snapshots. Run `ai-tabs install` after a change |
 | `splash` | `true` | Show the logo for a moment when the restore screen opens, in iTerm2 |
-| `tui_font_size` | empty | Text size of the restore screen, in points. Empty keeps the font of the session |
 
 `ai-tabs config` shows each value and where it comes from. `ai-tabs config set KEY VALUE` and `ai-tabs config unset KEY` change the file. The settings window of the restore screen (`o`) writes the same file. A new `data_dir` takes effect at the next start.
 
