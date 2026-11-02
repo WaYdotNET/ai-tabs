@@ -1,0 +1,152 @@
+{
+  "schema_version": "ai-attribution/1.2.0",
+  "base_commit_sha": "705aefa6de4d1d0a4fe901a4cb8869cc7ebba9f9",
+  "sessions": {
+    "01a19c67-8b23-7647-94a4-129e31e15632": {
+      "agent": {
+        "tool": "omp",
+        "model": "anthropic/claude-opus-5-5"
+      },
+      "human_author": "Carlo Bertini \u003cwaydotnet@gmail.com\u003e"
+    }
+  },
+  "files": {
+    "README.md": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::7a5c9cbe4fb2": [
+        "1-2",
+        10,
+        49,
+        51,
+        55,
+        "113-114"
+      ]
+    },
+    "src/ai_tabs/cli.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::937b26fe9ad1": [
+        36,
+        106,
+        "108-110"
+      ]
+    },
+    "src/ai_tabs/config.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::1a20dd5f1edd": [
+        "43-44",
+        "54-55",
+        "70-71",
+        "104-105"
+      ]
+    },
+    "src/ai_tabs/logo.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::88a421d7a0c8": [
+        36
+      ],
+      "01a19c67-8b23-7647-94a4-129e31e15632::9200a56574ca": [
+        "1-34",
+        "38-41"
+      ],
+      "01a19c67-8b23-7647-94a4-129e31e15632::a38ad49024c0": [
+        35,
+        37
+      ]
+    },
+    "src/ai_tabs/screen.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::0847c38c8f57": [
+        8,
+        "68-69",
+        81,
+        101,
+        106
+      ],
+      "01a19c67-8b23-7647-94a4-129e31e15632::7a83a8885e72": [
+        "1-7",
+        "9-67",
+        "70-80",
+        "82-100",
+        "102-105"
+      ]
+    },
+    "src/ai_tabs/tui.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::4e34735a066b": [
+        7,
+        31,
+        124,
+        150,
+        "184-185",
+        307
+      ]
+    },
+    "tests/test_screen.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::aa12ac12bb7d": [
+        "1-43"
+      ]
+    }
+  },
+  "deletions": {
+    "README.md": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::7a5c9cbe4fb2": {
+        "total": 2
+      }
+    },
+    "src/ai_tabs/cli.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::937b26fe9ad1": {
+        "total": 2
+      }
+    },
+    "src/ai_tabs/logo.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::88a421d7a0c8": {
+        "total": 1
+      },
+      "01a19c67-8b23-7647-94a4-129e31e15632::a38ad49024c0": {
+        "total": 2
+      },
+      "01a19c67-8b23-7647-94a4-129e31e15632::d9016260a436": {
+        "total": 1
+      }
+    },
+    "src/ai_tabs/screen.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::0847c38c8f57": {
+        "total": 6
+      }
+    },
+    "src/ai_tabs/tui.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::4e34735a066b": {
+        "total": 3
+      }
+    }
+  },
+  "turns": {
+    "01a19c67-8b23-7647-94a4-129e31e15632::0847c38c8f57": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::1a20dd5f1edd": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::4e34735a066b": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::7a5c9cbe4fb2": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::7a83a8885e72": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::88a421d7a0c8": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::9200a56574ca": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::937b26fe9ad1": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::a38ad49024c0": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::aa12ac12bb7d": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::d9016260a436": {
+      "model": "anthropic/claude-opus-5-5"
+    }
+  }
+}
