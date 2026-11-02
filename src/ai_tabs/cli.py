@@ -267,7 +267,7 @@ def unload_agent() -> None:
 @app.command()
 def install(
     data_dir: Annotated[Path | None, typer.Option(help="Folder of the snapshot database.")] = None,
-    markdown_dir: Annotated[Path | None, typer.Option(help="Folder for the Markdown views, as in an Obsidian vault.")] = None,
+    markdown_dir: Annotated[Path | None, typer.Option(help="Folder for the Markdown views, as in a vault.")] = None,
     backup_dir: Annotated[Path | None, typer.Option(help="Folder of the daily database backups.")] = None,
 ) -> None:
     """Save the folders in the configuration and load the launchd agent that takes the snapshots.
