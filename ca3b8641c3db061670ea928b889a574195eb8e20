@@ -1,0 +1,90 @@
+{
+  "schema_version": "ai-attribution/1.2.0",
+  "base_commit_sha": "6f9cb9830981d418f19629d7a76bfd2a260b143c",
+  "sessions": {
+    "01a19c67-8b23-7647-94a4-129e31e15632": {
+      "agent": {
+        "tool": "omp",
+        "model": "anthropic/claude-opus-5-5"
+      },
+      "human_author": "Carlo Bertini \u003cwaydotnet@gmail.com\u003e"
+    }
+  },
+  "files": {
+    "src/ai_tabs/cli.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::172f0dfbaf04": [
+        36,
+        106,
+        109
+      ]
+    },
+    "src/ai_tabs/screen.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::d6f74167f718": [
+        1,
+        "38-39"
+      ]
+    },
+    "tests/test_screen.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::172f0dfbaf04": [
+        1,
+        4
+      ]
+    }
+  },
+  "deletions": {
+    "README.md": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::b70383496336": {
+        "total": 2
+      }
+    },
+    "src/ai_tabs/cli.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::172f0dfbaf04": {
+        "total": 5
+      },
+      "01a19c67-8b23-7647-94a4-129e31e15632::fc09f3bc2af8": {
+        "total": 1
+      }
+    },
+    "src/ai_tabs/config.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::172f0dfbaf04": {
+        "total": 4
+      }
+    },
+    "src/ai_tabs/screen.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::175b231668bb": {
+        "total": 2
+      },
+      "01a19c67-8b23-7647-94a4-129e31e15632::d6f74167f718": {
+        "total": 98
+      }
+    },
+    "tests/test_screen.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::172f0dfbaf04": {
+        "total": 12
+      },
+      "01a19c67-8b23-7647-94a4-129e31e15632::44e3f18df561": {
+        "total": 9
+      }
+    }
+  },
+  "turns": {
+    "01a19c67-8b23-7647-94a4-129e31e15632::172f0dfbaf04": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::175b231668bb": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::44e3f18df561": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::b70383496336": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::d6f74167f718": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::fc09f3bc2af8": {
+      "model": "anthropic/claude-opus-5-5"
+    }
+  }
+}
