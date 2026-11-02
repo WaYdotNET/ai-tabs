@@ -67,23 +67,21 @@ def test_a_manual_pin_is_not_replaced_by_an_automatic_one(monkeypatch):
     assert store.find_snapshot(before).summary.pinned == "manual"
 
 
-def test_markdown_views_hold_the_latest_snapshot_and_the_day_log(monkeypatch, isolated_data):
+def test_export_latest_rewrites_latest_md_after_every_new_snapshot(monkeypatch, isolated_data):
     monkeypatch.setattr(snapshot, "boot_time", lambda: BOOT)
-    write_config({"markdown_dir": str(isolated_data / "vault")})
+    write_config({"export_dir": str(isolated_data / "vault"), "export_latest": True})
     first = [Window([0, 0, 800, 600], [tab(agent_pane("s1", "Fix the build"), title="BUILD"), tab(agent_pane("s2"))])]
     snapshot.record_snapshot(first, datetime(2026, 11, 2, 10, 0, 0))
 
     snapshot.record_snapshot(windows_with_tabs(0), datetime(2026, 11, 2, 10, 5, 0))
 
-    latest = (isolated_data / "vault/ai-tabs.md").read_text()
-    day = (isolated_data / "vault/history/2026-11-02.md").read_text()
-    assert "`2026-11-02/10-05-00`" in latest
-    assert day.count("## 10:0") == 2
-    assert "- Closed: **BUILD**: omp “Fix the build” in `/work`" in day
-    assert "- Pinned `2026-11-02/10-00-00`: before crash" in day
+    latest = (isolated_data / "vault/latest.md").read_text()
+    assert "id: 2026-11-02/10-05-00" in latest
+    assert "- Closed: **BUILD**: omp “Fix the build” in `/work`" in latest
+    assert sorted(path.name for path in (isolated_data / "vault").iterdir()) == ["latest.md"]
 
 
-def test_no_markdown_views_without_a_markdown_folder(monkeypatch, isolated_data):
+def test_no_markdown_is_written_by_default(monkeypatch, isolated_data):
     monkeypatch.setattr(snapshot, "boot_time", lambda: BOOT)
 
     snapshot.record_snapshot(windows_with_tabs(1), datetime(2026, 11, 2, 10, 0, 0))

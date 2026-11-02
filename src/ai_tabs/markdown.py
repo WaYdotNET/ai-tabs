@@ -1,22 +1,16 @@
-"""The optional Markdown views, to read in Obsidian or any Markdown viewer.
+"""The Markdown export of snapshots, to read in Obsidian or any Markdown viewer.
 
-When `markdown_dir` is set, every new snapshot writes:
-
-* `ai-tabs.md`: the latest snapshot, with a table of the panes and the resume commands;
-* `history/YYYY-MM-DD.md`: one file per day, with one section for each snapshot of the day
-  and the changes it records.
-
-The database stays the only source of the data: nothing reads these files back.
+`ai-tabs export` writes one file per snapshot: `export_dir/YYYY-MM-DD/HH-MM-SS.md`. With
+`export_latest = true`, every new snapshot also rewrites `export_dir/latest.md`. The database
+stays the only source of the data: nothing reads these files back.
 """
 
 import shlex
-from datetime import date, timedelta
 from pathlib import Path
 
-from .config import HISTORY_DAYS
 from .diff import render_changes
 from .models import Pane, Tab, Window, positioned_tabs
-from .store import Snapshot
+from .store import PIN_LABELS, Snapshot
 
 
 def tab_label(position: str, tab: Tab) -> str:
@@ -42,6 +36,8 @@ def pane_details(pane: Pane) -> list[str]:
     """Return the detail lines and the resume command of one pane."""
     agent = pane.agent
     lines = [f"- iTerm session name: {pane.name}", f"- Shell folder: `{pane.path}`"]
+    if pane.profile:
+        lines.append(f"- iTerm2 profile: {pane.profile}")
     if agent:
         lines.append(f"- Agent: {agent.kind}, session `{agent.session_id}`, folder `{agent.cwd}`")
     command = agent.resume if agent else f"cd {shlex.quote(pane.path)}"
@@ -62,55 +58,42 @@ def render_sessions(windows: list[Window]) -> list[str]:
     return lines
 
 
-def render_latest(snapshot: Snapshot) -> str:
-    """Return the Markdown view of the latest snapshot."""
+def front_matter(snapshot: Snapshot) -> list[str]:
+    """Return the YAML front matter of an export, for Obsidian properties and Dataview."""
     summary = snapshot.summary
-    header = ["# iTerm2 sessions", "", f"Updated: {summary.created_at:%Y-%m-%d %H:%M:%S} (`{summary.id}`)", "",
-              "To pick the tabs to open again, run `ai-tabs`.", ""]
-    return "\n".join(header + render_sessions(snapshot.windows))
+    pin = PIN_LABELS.get(summary.pinned, summary.pinned) if summary.pinned else "no"
+    return ["---", f"id: {summary.id}", f"created: {summary.created_at:%Y-%m-%d %H:%M:%S}",
+            f"tabs: {summary.tabs}", f"agents: {summary.agents}", f"opened: {summary.opened}",
+            f"closed: {summary.closed}", f"changed: {summary.changed}", f"pinned: {pin}", "---", ""]
 
 
-def render_day_entry(snapshot: Snapshot, pin_note: str | None) -> str:
-    """Return the section of one snapshot in the file of its day."""
+def render_snapshot(snapshot: Snapshot) -> str:
+    """Return the Markdown export of one snapshot: front matter, changes, panes and commands."""
     summary = snapshot.summary
-    lines = [f"## {summary.created_at:%H:%M:%S}", "",
-             f"`{summary.id}` · {summary.tabs} tabs · {summary.agents} agents", "", *render_changes(snapshot.changes)]
-    if pin_note:
-        lines.append(f"- {pin_note}")
-    return "\n".join(lines) + "\n\n"
-
-
-def day_file(markdown_dir: Path, day: date) -> Path:
-    """Return the Markdown file of a day."""
-    return markdown_dir / "history" / f"{day:%Y-%m-%d}.md"
-
-
-def day_header(day: date) -> str:
-    """Return the first lines of a new day file."""
-    return (f"# iTerm2 sessions — {day:%Y-%m-%d}\n\n"
-            "To see a snapshot, run `ai-tabs show ID`. To open it again, run `ai-tabs restore --from ID`.\n\n")
+    body = [f"# iTerm2 tabs — {summary.created_at:%Y-%m-%d %H:%M:%S}", "",
+            f"To pick these tabs again, run `ai-tabs restore --from {summary.id}`.", "",
+            "## Changes", "", *render_changes(snapshot.changes), "", "## Sessions", "",
+            *render_sessions(snapshot.windows)]
+    return "\n".join(front_matter(snapshot) + body)
 
 
 def write_atomically(path: Path, content: str) -> None:
     """Replace the file in one step, so that a crash never leaves half a file."""
+    path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_suffix(path.suffix + ".tmp")
     temporary.write_text(content)
     temporary.replace(path)
 
 
-def write_views(markdown_dir: Path, snapshot: Snapshot, pin_note: str | None) -> None:
-    """Write the latest snapshot and add the snapshot to the file of its day."""
-    day = snapshot.summary.created_at.date()
-    target = day_file(markdown_dir, day)
-    target.parent.mkdir(parents=True, exist_ok=True)
-    write_atomically(markdown_dir / "ai-tabs.md", render_latest(snapshot))
-    previous = target.read_text() if target.exists() else day_header(day)
-    write_atomically(target, previous + render_day_entry(snapshot, pin_note))
+def export_snapshot(snapshot: Snapshot, export_dir: Path) -> Path:
+    """Write the export of a snapshot to `export_dir/YYYY-MM-DD/HH-MM-SS.md` and return the file."""
+    target = export_dir / f"{snapshot.summary.id}.md"
+    write_atomically(target, render_snapshot(snapshot))
+    return target
 
 
-def prune_days(markdown_dir: Path, today: date) -> None:
-    """Delete the day files older than HISTORY_DAYS, like the snapshots in the database."""
-    oldest = f"{today - timedelta(days=HISTORY_DAYS):%Y-%m-%d}"
-    for old in (markdown_dir / "history").glob("????-??-??.md"):
-        if old.stem < oldest:
-            old.unlink()
+def write_latest(snapshot: Snapshot, export_dir: Path) -> Path:
+    """Write the export of a snapshot to `export_dir/latest.md` and return the file."""
+    target = export_dir / "latest.md"
+    write_atomically(target, render_snapshot(snapshot))
+    return target

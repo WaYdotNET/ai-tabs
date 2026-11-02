@@ -1,6 +1,8 @@
 """Choose what restore opens: the tabs, and the command that each pane runs."""
 
+import copy
 import shlex
+from dataclasses import replace
 
 from rich.markup import escape
 from rich.text import Text
@@ -22,6 +24,44 @@ def pane_command(pane: Pane) -> str:
     if is_still_running(agent):
         return f"cd {shlex.quote(agent.cwd)}  # {agent.kind} session {agent.session_id} still runs"
     return agent.resume
+
+
+def duplicate_agent(pane: Pane, first_position: str) -> Pane:
+    """Return a copy of the pane whose agent only opens its folder, because a pane before it has the session."""
+    agent = pane.agent
+    note = f"cd {shlex.quote(agent.cwd)}  # {agent.kind} session {agent.session_id} is also in tab {first_position}"
+    return replace(pane, agent=replace(agent, resume=note))
+
+
+def first_places(windows: list[Window]) -> dict[tuple[str, str], tuple[str, int]]:
+    """Return where each agent session first appears: its tab position and its pane index."""
+    first: dict[tuple[str, str], tuple[str, int]] = {}
+    for position, tab in positioned_tabs(windows):
+        for index, pane in enumerate(tab.panes):
+            if pane.agent:
+                first.setdefault((pane.agent.kind, pane.agent.session_id), (position, index))
+    return first
+
+
+def resolve_duplicates(windows: list[Window]) -> list[Window]:
+    """Return copies of the windows where only the first pane of each agent session resumes it.
+
+    Two processes on the same session file would corrupt it. Later panes with the same kind
+    and session ID only open the folder.
+    """
+    copies = copy.deepcopy(windows)
+    first = first_places(copies)
+    for position, tab in positioned_tabs(copies):
+        tab.panes = [resolve_pane(pane, (position, index), first) for index, pane in enumerate(tab.panes)]
+    return copies
+
+
+def resolve_pane(pane: Pane, place: tuple[str, int], first: dict[tuple[str, str], tuple[str, int]]) -> Pane:
+    """Return the pane, or its duplicate form when its session first appears in another place."""
+    if pane.agent is None:
+        return pane
+    first_place = first[(pane.agent.kind, pane.agent.session_id)]
+    return pane if first_place == place else duplicate_agent(pane, first_place[0])
 
 
 def tab_is_running(tab: Tab) -> bool:

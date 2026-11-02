@@ -12,21 +12,26 @@ import iterm2
 import typer
 from rich.table import Table
 
-from . import store
+from . import markdown, store
 from .config import (
+    CONFIG_FILE,
     LAUNCHCTL,
     LAUNCHD_LABEL,
     LAUNCHD_LOG,
     LAUNCHD_PLIST,
-    SNAPSHOT_INTERVAL_SECONDS,
+    SETTING_HELP,
+    SETTING_KINDS,
+    parse_setting,
+    setting_source,
     settings,
+    unset_config,
     write_config,
 )
 from .display import console, print_sessions
 from .iterm import iterm_is_running
 from .models import Window, positioned_tabs
 from .opener import open_windows
-from .plan import keep_positions, print_plan
+from .plan import keep_positions, print_plan, resolve_duplicates
 from .snapshot import take_snapshot
 from .tui import RestoreApp, RestoreChoice
 
@@ -80,7 +85,7 @@ def check_positions(windows: list[Window], positions: list[str]) -> list[str]:
 
 def run_choice(choice: RestoreChoice) -> None:
     """Open the selected tabs, or print their commands."""
-    windows = resolve_snapshot(choice.snapshot_id).windows
+    windows = resolve_duplicates(resolve_snapshot(choice.snapshot_id).windows)
     if not choice.open_tabs:
         print_plan(windows, choice.positions)
         return
@@ -195,7 +200,7 @@ def pin(reference: Annotated[str, typer.Argument(metavar="SNAPSHOT", help=SNAPSH
 
 @app.command()
 def unpin(reference: Annotated[str, typer.Argument(metavar="SNAPSHOT", help=SNAPSHOT_HELP)]) -> None:
-    """Remove the pin of a snapshot. The history deletes it when it is older than 30 days."""
+    """Remove the pin of a snapshot. The history deletes it when it is older than `history_days`."""
     snapshot = resolve_snapshot(reference)
     store.set_pin(snapshot.summary.id, None)
     print(f"Removed the pin of {snapshot.summary.id}.")
@@ -209,6 +214,21 @@ def backup() -> None:
     the newest `backup_keep` stay. To use a backup, copy it over the database file.
     """
     print(f"Wrote {store.write_backup(date.today())}")
+
+
+@app.command()
+def export(
+    references: Annotated[list[str] | None, typer.Argument(metavar="SNAPSHOT...", help=SNAPSHOT_HELP)] = None,
+    to: Annotated[Path | None, typer.Option("--to", help="Folder of the Markdown files. Default: export_dir.")] = None,
+) -> None:
+    """Write snapshots as Markdown files, one file per snapshot: `FOLDER/YYYY-MM-DD/HH-MM-SS.md`.
+
+    Without a snapshot, the command exports `latest`. Each file has a front matter for Obsidian
+    properties, the changes, a table of the panes and the resume commands.
+    """
+    target = to.expanduser() if to else settings().export_dir
+    for reference in references or [store.LATEST]:
+        print(f"Wrote {markdown.export_snapshot(resolve_snapshot(reference), target)}")
 
 
 def snapshot_command() -> list[str]:
@@ -237,7 +257,7 @@ def launchd_plist(command: list[str]) -> str:
   <array>{items}
   </array>
   <key>StartInterval</key>
-  <integer>{SNAPSHOT_INTERVAL_SECONDS}</integer>
+  <integer>{settings().snapshot_interval}</integer>
   <key>RunAtLoad</key>
   <true/>
   <key>EnvironmentVariables</key>
@@ -254,31 +274,19 @@ def launchd_plist(command: list[str]) -> str:
 """
 
 
-def config_updates(**folders: Path | None) -> dict[str, str]:
-    """Return the folders given on the command line as configuration keys, with absolute paths."""
-    return {key: str(folder.expanduser().resolve()) for key, folder in folders.items() if folder}
-
-
 def unload_agent() -> None:
     """Stop the launchd agent. It is not an error when the agent is not loaded."""
     subprocess.run([LAUNCHCTL, "bootout", f"gui/{os.getuid()}/{LAUNCHD_LABEL}"], capture_output=True, check=False)
 
 
 @app.command()
-def install(
-    data_dir: Annotated[Path | None, typer.Option(help="Folder of the snapshot database.")] = None,
-    markdown_dir: Annotated[Path | None, typer.Option(help="Folder for the Markdown views, as in a vault.")] = None,
-    backup_dir: Annotated[Path | None, typer.Option(help="Folder of the daily database backups.")] = None,
-) -> None:
-    """Save the folders in the configuration and load the launchd agent that takes the snapshots.
+def install() -> None:
+    """Load the launchd agent that takes the snapshots.
 
-    The configuration is `~/.config/ai-tabs/config.toml`. The options change only the keys
-    they set. The agent runs `ai-tabs snapshot` at login and every 5 minutes. Its log is
-    `~/Library/Logs/ai-tabs.log`. Run the command again after you move or reinstall the tool.
+    The agent runs `ai-tabs snapshot` at login and every `snapshot_interval` seconds. Its log is
+    `~/Library/Logs/ai-tabs.log`. Run the command again after you move or reinstall the tool,
+    or after you change `snapshot_interval`.
     """
-    updates = config_updates(data_dir=data_dir, markdown_dir=markdown_dir, backup_dir=backup_dir)
-    if updates:
-        write_config(updates)
     LAUNCHD_PLIST.parent.mkdir(parents=True, exist_ok=True)
     LAUNCHD_PLIST.write_text(launchd_plist(snapshot_command()))
     unload_agent()
@@ -292,6 +300,45 @@ def uninstall() -> None:
     unload_agent()
     LAUNCHD_PLIST.unlink(missing_ok=True)
     print(f"Removed {LAUNCHD_PLIST}. The data stays in {settings().data_dir}.")
+
+
+config_app = typer.Typer(rich_markup_mode="markdown", help=f"Show or change the settings in `{CONFIG_FILE}`.")
+app.add_typer(config_app, name="config")
+
+
+@config_app.callback(invoke_without_command=True)
+def config_show(context: typer.Context) -> None:
+    """Without a subcommand, show every setting, its value and where the value comes from."""
+    if context.invoked_subcommand is not None:
+        return
+    current = vars(settings())
+    table = Table("Setting", "Value", "Source", "Meaning", title=str(CONFIG_FILE))
+    for key in SETTING_KINDS:
+        table.add_row(key, str(current[key]), setting_source(key), SETTING_HELP[key])
+    console.print(table)
+
+
+@config_app.command("set")
+def config_set(
+    key: Annotated[str, typer.Argument(help=f"One of: {', '.join(SETTING_KINDS)}.")],
+    value: Annotated[str, typer.Argument(help="A folder, true or false, or a whole number, as the setting needs.")],
+) -> None:
+    """Set a setting in the configuration file. A folder becomes an absolute path."""
+    try:
+        parsed = parse_setting(key, value)
+    except ValueError as error:
+        raise typer.BadParameter(str(error)) from error
+    write_config({key: parsed})
+    print(f"{key} = {parsed}")
+
+
+@config_app.command("unset")
+def config_unset(key: Annotated[str, typer.Argument(help=f"One of: {', '.join(SETTING_KINDS)}.")]) -> None:
+    """Remove a setting from the configuration file, so that it takes its default again."""
+    if key not in SETTING_KINDS:
+        raise typer.BadParameter(f"unknown setting {key!r}; the settings are {', '.join(SETTING_KINDS)}")
+    unset_config(key)
+    print(f"{key} = {getattr(settings(), key)} (default)")
 
 
 def run() -> None:

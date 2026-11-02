@@ -12,11 +12,11 @@ from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
-from .config import HISTORY_DAYS, settings
+from .config import settings
 from .models import Window, agent_count, tab_count, windows_from_json, windows_to_json
 
 LATEST = "latest"
-PIN_LABELS = {"manual": "pinned", "before-boot": "before boot", "before-drop": "before crash"}
+PIN_LABELS = {"manual": "pinned", "before-boot": "before boot", "before-drop": "before tabs closed"}
 AUTO_PINS = ("before-boot", "before-drop")
 
 SCHEMA = """
@@ -131,11 +131,11 @@ def set_pin(wanted: str, reason: str | None) -> bool:
 
 
 def prune(today: date) -> int:
-    """Delete the snapshots older than HISTORY_DAYS. Return how many went.
+    """Delete the snapshots older than `history_days`. Return how many went.
 
     Pinned snapshots stay, and so does the newest snapshot, however old it is.
     """
-    oldest = f"{today - timedelta(days=HISTORY_DAYS):%Y-%m-%d}"
+    oldest = f"{today - timedelta(days=settings().history_days):%Y-%m-%d}"
     with database() as db:
         return db.execute("DELETE FROM snapshots WHERE pinned IS NULL AND created_at < ? "
                           "AND id < (SELECT MAX(id) FROM snapshots)", (oldest,)).rowcount

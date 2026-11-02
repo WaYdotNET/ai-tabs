@@ -14,11 +14,12 @@ from textual.screen import ModalScreen
 from textual.widgets import Footer, Input, Label, ListItem, ListView, OptionList, Static
 from textual.widgets.option_list import Option
 
-from . import store
+from . import markdown, store
+from .config import CONFIG_FILE, SETTING_HELP, SETTING_KINDS, parse_setting, read_config, save_config, settings
 from .diff import render_changes
 from .display import snapshot_markup, tab_markup, tab_matches
 from .models import Tab, Window, positioned_tabs
-from .plan import default_positions, plan_text
+from .plan import default_positions, plan_text, resolve_duplicates
 
 KEYS_HELP = """\
 ↑ ↓        move in the list
@@ -30,8 +31,59 @@ enter      restore the selected tabs
 c          show the commands that restore runs
 h          show the changes that the snapshot records
 p          pin the snapshot, or remove its pin (pinned snapshots are never deleted)
+e          export the snapshot as Markdown to export_dir
+o          change the settings
 s          take a snapshot now
 q, esc     quit"""
+
+
+def setting_text(value: object) -> str:
+    """Return a setting value as the text that `ai-tabs config set` accepts."""
+    return str(value).lower() if isinstance(value, bool) else str(value)
+
+
+class SettingsScreen(ModalScreen[bool]):
+    """A window to change the settings in the configuration file. An empty field means the default."""
+
+    CSS = """
+    SettingsScreen { align: center middle; }
+    #settings { width: 90%; height: 85%; border: round $primary; background: $surface; padding: 0 1; }
+    #settings Input { margin-bottom: 1; }
+    #error { color: $error; }
+    """
+    BINDINGS = [Binding("escape", "dismiss(False)", "cancel"), Binding("ctrl+s", "save", "save")]
+
+    def compose(self) -> ComposeResult:
+        """Lay out one field for each setting, filled with the value of the configuration file."""
+        saved = read_config()
+        current = vars(settings())
+        with VerticalScroll(id="settings"):
+            for key in SETTING_KINDS:
+                yield Label(f"[bold]{key}[/bold]  [dim]{SETTING_HELP[key]}[/dim]")
+                yield Input(value=setting_text(saved.get(key, "")), placeholder=setting_text(current[key]),
+                            id=f"setting-{key}")
+            yield Label("", id="error")
+
+    def on_mount(self) -> None:
+        """Show how to save on the border, and the file that the window writes."""
+        box = self.query_one("#settings")
+        box.border_title = "Settings · ctrl+s saves · esc cancels · empty means default"
+        box.border_subtitle = str(CONFIG_FILE)
+
+    def entered_values(self) -> dict[str, object]:
+        """Return the settings that the fields hold. Raise ValueError for a value that is not valid."""
+        texts = {key: self.query_one(f"#setting-{key}", Input).value.strip() for key in SETTING_KINDS}
+        return {key: parse_setting(key, text) for key, text in texts.items() if text}
+
+    def action_save(self) -> None:
+        """Write the settings and close the window, or show why a value is not valid."""
+        try:
+            values = self.entered_values()
+        except ValueError as error:
+            self.query_one("#error", Label).update(str(error))
+            return
+        save_config(values)
+        self.dismiss(True)
 
 
 @dataclass
@@ -100,6 +152,8 @@ class RestoreApp(App[RestoreChoice]):
         Binding("p", "pin", "pin"),
         Binding("question_mark", "keys", "keys"),
         Binding("s", "snapshot", "snapshot", show=False),
+        Binding("e", "export", "export", show=False),
+        Binding("o", "settings", "settings", show=False),
         Binding("a", "toggle_all", "all", show=False),
         Binding("tab,shift+tab", "switch_panel", "switch panel", show=False, priority=True),
         Binding("escape", "leave", "back", show=False),
@@ -154,7 +208,7 @@ class RestoreApp(App[RestoreChoice]):
     def load_snapshot(self, wanted: str) -> None:
         """Show the tabs of a snapshot. The tabs without a running agent start selected."""
         snapshot = store.snapshot_by_id(wanted)
-        self.windows = snapshot.windows if snapshot else []
+        self.windows = resolve_duplicates(snapshot.windows) if snapshot else []
         self.snapshot_id = wanted
         self.tabs = positioned_tabs(self.windows)
         selected = set(default_positions(self.windows))
@@ -280,6 +334,22 @@ class RestoreApp(App[RestoreChoice]):
         await snapshot_list.clear()
         await snapshot_list.extend(self.snapshot_items())
         snapshot_list.index = self.current_index()
+
+    def action_export(self) -> None:
+        """Export the current snapshot as Markdown to `export_dir`."""
+        snapshot = store.snapshot_by_id(self.snapshot_id)
+        if snapshot is not None:
+            self.notify(f"Wrote {markdown.export_snapshot(snapshot, settings().export_dir)}")
+
+    def action_settings(self) -> None:
+        """Open the settings window."""
+        self.push_screen(SettingsScreen(), self.after_settings)
+
+    def after_settings(self, saved: bool | None) -> None:
+        """Confirm the save. A new database folder takes effect only at the next start."""
+        if saved:
+            self.notify("Saved. A new data_dir takes effect at the next start, "
+                        "a new snapshot_interval after `ai-tabs install`.")
 
     def action_finish(self) -> None:
         """Close the screen with the selected tabs."""
