@@ -48,7 +48,7 @@ To stop the snapshots, run `ai-tabs uninstall`. The database, the backups and th
 
 Run `ai-tabs` without a command to open the restore screen. In iTerm2, the logo shows for a moment first (setting `splash`):
 
-- The screen uses the colors of the logo, in a light theme (the default) and a dark theme. The `theme` setting chooses one: `light`, `dark`, or `auto` to follow the macOS appearance. Press `t` to switch for one run. The top bar shows the small logo. Press `?` for the list of all the keys.
+- The screen uses the colors of the logo, in a dark and a light theme. The `theme` setting chooses one, and `auto` follows the macOS appearance. Press `t` to switch for one run. The top bar shows the small logo. Press `?` for the list of all the keys.
 - The left panel shows the snapshots, newest first. 📌 marks a pinned snapshot. A gold line shows how many panes opened and closed.
 - The right panel shows the tabs of the selected snapshot. A bar in the tab color comes first, then the tab title, the session title and the folder. A green `●` marks an agent session that still runs.
 - After a reboot or a crash, the screen starts on the last snapshot from before it, until you restore it.
@@ -111,7 +111,7 @@ A setting takes its value from, in order of priority:
 | `history_days` | `30` | How many days the unpinned snapshots stay |
 | `snapshot_interval` | `300` | Seconds between two snapshots. Run `ai-tabs install` after a change |
 | `splash` | `true` | Show the logo for a moment when the restore screen opens, in iTerm2 |
-| `theme` | `light` | `light`, `dark` or `auto`. `auto` follows the macOS appearance |
+| `theme` | `auto` | `auto`, `dark` or `light`. `auto` follows the macOS appearance |
 
 `ai-tabs config` shows each value and where it comes from. `ai-tabs config set KEY VALUE` and `ai-tabs config unset KEY` change the file. The settings window of the restore screen (`o`) writes the same file. A new `data_dir` takes effect at the next start.
 

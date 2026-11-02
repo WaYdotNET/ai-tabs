@@ -10,31 +10,23 @@ from ai_tabs import config, palette, store
 from ai_tabs.tui import RestoreApp
 
 
-def test_the_default_theme_is_light_whatever_the_macos_appearance(monkeypatch):
-    monkeypatch.setattr(palette, "system_is_dark", lambda: True)
-
-    assert palette.chosen_palette() is palette.LIGHT
-
-
 def test_auto_follows_a_dark_macos_appearance(monkeypatch):
     monkeypatch.setattr(palette, "system_is_dark", lambda: True)
-    config.write_config({"theme": "auto"})
 
     assert palette.chosen_palette() is palette.DARK
 
 
 def test_auto_follows_a_light_macos_appearance(monkeypatch):
     monkeypatch.setattr(palette, "system_is_dark", lambda: False)
-    config.write_config({"theme": "auto"})
 
     assert palette.chosen_palette() is palette.LIGHT
 
 
 def test_the_theme_setting_wins_over_the_macos_appearance(monkeypatch):
-    monkeypatch.setattr(palette, "system_is_dark", lambda: False)
-    config.write_config({"theme": "dark"})
+    monkeypatch.setattr(palette, "system_is_dark", lambda: True)
+    config.write_config({"theme": "light"})
 
-    assert palette.chosen_palette() is palette.DARK
+    assert palette.chosen_palette() is palette.LIGHT
 
 
 def test_an_unknown_theme_is_refused():
