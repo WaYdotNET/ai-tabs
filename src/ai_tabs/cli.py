@@ -23,6 +23,7 @@ from .config import (
     SETTING_KINDS,
     parse_setting,
     setting_source,
+    setting_text,
     settings,
     unset_config,
     write_config,
@@ -315,7 +316,7 @@ def config_show(context: typer.Context) -> None:
     current = vars(settings())
     table = Table("Setting", "Value", "Source", "Meaning", title=str(CONFIG_FILE))
     for key in SETTING_KINDS:
-        table.add_row(key, str(current[key]), setting_source(key), SETTING_HELP[key])
+        table.add_row(key, setting_text(current[key]), setting_source(key), SETTING_HELP[key])
     console.print(table)
 
 
@@ -330,7 +331,7 @@ def config_set(
     except ValueError as error:
         raise typer.BadParameter(str(error)) from error
     write_config({key: parsed})
-    print(f"{key} = {parsed}")
+    print(f"{key} = {setting_text(parsed)}")
 
 
 @config_app.command("unset")
@@ -339,7 +340,7 @@ def config_unset(key: Annotated[str, typer.Argument(help=f"One of: {', '.join(SE
     if key not in SETTING_KINDS:
         raise typer.BadParameter(f"unknown setting {key!r}; the settings are {', '.join(SETTING_KINDS)}")
     unset_config(key)
-    print(f"{key} = {getattr(settings(), key)} (default)")
+    print(f"{key} = {setting_text(getattr(settings(), key))} (default)")
 
 
 def run() -> None:

@@ -148,3 +148,8 @@ def write_config(updates: dict[str, object]) -> None:
 def unset_config(key: str) -> None:
     """Remove a key from the configuration file, so that the setting takes its default again."""
     save_config({name: value for name, value in read_config().items() if name != key})
+
+
+def setting_text(value: object) -> str:
+    """Return a setting value as the text that `ai-tabs config set` accepts."""
+    return str(value).lower() if isinstance(value, bool) else str(value)

@@ -15,7 +15,16 @@ from textual.widgets import Footer, Input, Label, ListItem, ListView, OptionList
 from textual.widgets.option_list import Option
 
 from . import markdown, store
-from .config import CONFIG_FILE, SETTING_HELP, SETTING_KINDS, parse_setting, read_config, save_config, settings
+from .config import (
+    CONFIG_FILE,
+    SETTING_HELP,
+    SETTING_KINDS,
+    parse_setting,
+    read_config,
+    save_config,
+    setting_text,
+    settings,
+)
 from .diff import render_changes
 from .display import snapshot_markup, tab_markup, tab_matches
 from .models import Tab, Window, positioned_tabs
@@ -35,11 +44,6 @@ e          export the snapshot as Markdown to export_dir
 o          change the settings
 s          take a snapshot now
 q, esc     quit"""
-
-
-def setting_text(value: object) -> str:
-    """Return a setting value as the text that `ai-tabs config set` accepts."""
-    return str(value).lower() if isinstance(value, bool) else str(value)
 
 
 class SettingsScreen(ModalScreen[bool]):
