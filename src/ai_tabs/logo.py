@@ -1,21 +1,9 @@
-"""The ai-tabs logo as colored text, and the colors of the logo that the restore screen uses."""
+"""The ai-tabs logo as colored text, in the colors of a palette."""
 
 from rich.console import Group
 from rich.text import Text
 
-# Colors sampled from assets/logo.png. PURPLE is lighter than the logo purple, which is too
-# dark to read on the navy background.
-CYAN = "#01EAFC"
-PURPLE = "#AE72F5"
-GREEN = "#52FA74"
-GOLD = "#FCB60D"
-RED = "#FF6464"
-WHITE = "#FBFBFC"
-MUTED = "#7187A6"
-NAVY = "#081637"
-NAVY_DEEP = "#010A2D"
-NAVY_LIGHT = "#092852"
-BLUE = "#023468"
+from .palette import Palette
 
 
 def styled_line(*parts: tuple[str, str]) -> Text:
@@ -26,22 +14,25 @@ def styled_line(*parts: tuple[str, str]) -> Text:
     return line
 
 
-def logo_compact() -> Text:
+def logo_compact(colors: Palette) -> Text:
     """Return the one-line logo for the top bar and the keys window of the restore screen."""
-    return styled_line(("▰", CYAN), ("▰", PURPLE), ("▰", GREEN), ("  >_ ", f"bold {WHITE}"),
-                       ("↻ ", f"bold {GOLD}"), ("ai-", f"bold {WHITE}"), ("tabs", f"bold {CYAN}"))
+    return styled_line(("▰", colors.cyan), ("▰", colors.purple), ("▰", colors.green),
+                       ("  >_ ", f"bold {colors.foreground}"), ("↻ ", f"bold {colors.gold}"),
+                       ("ai-", f"bold {colors.foreground}"), ("tabs", f"bold {colors.cyan}"))
 
 
-def logo_full() -> Group:
+def logo_full(colors: Palette) -> Group:
     """Return the logo of six lines: a terminal window with three colored tabs, and the name."""
+    frame, text = colors.muted, colors.foreground
     return Group(
-        styled_line(("  ╭──────────────────────────╮", MUTED)),
-        styled_line(("  │ ", MUTED), ("● ", RED), ("● ", GOLD), ("●", GREEN), ("                    │", MUTED)),
-        styled_line(("  │ ", MUTED), ("▔▔▔▔▔▔", CYAN), (" ", WHITE), ("▔▔▔▔▔▔", PURPLE), (" ", WHITE),
-                    ("▔▔▔▔▔▔", GREEN), ("     │", MUTED)),
-        styled_line(("  │ ", MUTED), (">_", f"bold {WHITE}"), (" " * 18, WHITE), ("↻", f"bold {GOLD}"),
-                    ("    │", MUTED)),
-        styled_line(("  ╰──────────────────────────╯", MUTED)),
-        styled_line(("       ", WHITE), ("ai-", f"bold {WHITE}"), ("tabs", f"bold {CYAN}"), ("  ", WHITE),
-                    ("restore your flow", MUTED)),
+        styled_line(("  ╭──────────────────────────╮", frame)),
+        styled_line(("  │ ", frame), ("● ", colors.red), ("● ", colors.gold), ("●", colors.green),
+                    ("                    │", frame)),
+        styled_line(("  │ ", frame), ("▔▔▔▔▔▔", colors.cyan), (" ", text), ("▔▔▔▔▔▔", colors.purple), (" ", text),
+                    ("▔▔▔▔▔▔", colors.green), ("     │", frame)),
+        styled_line(("  │ ", frame), (">_", f"bold {text}"), (" " * 18, text), ("↻", f"bold {colors.gold}"),
+                    ("    │", frame)),
+        styled_line(("  ╰──────────────────────────╯", frame)),
+        styled_line(("       ", text), ("ai-", f"bold {text}"), ("tabs", f"bold {colors.cyan}"), ("  ", text),
+                    ("restore your flow", frame)),
     )

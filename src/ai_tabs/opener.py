@@ -11,8 +11,8 @@ from websockets.exceptions import ConnectionClosed
 
 from .agents import find_agent
 from .display import console, tab_heading
-from .logo import GOLD
 from .models import Agent, Pane, Tab, Window
+from .palette import chosen_palette
 from .plan import pane_command
 
 PROMPT_TIMEOUT = 10
@@ -214,7 +214,7 @@ async def report_not_started(resumed: list[Resumed]) -> None:
     started = await asyncio.gather(*(agent_started(item) for item in resumed))
     failed = [item for item, ok in zip(resumed, started, strict=True) if not ok]
     for item in failed:
-        console.print(f"[{GOLD}]did not start[/]  {escape(item.heading)}  "
+        console.print(f"[{chosen_palette().gold}]did not start[/]  {escape(item.heading)}  "
                       f"{item.agent.kind} {item.agent.session_id}")
 
 

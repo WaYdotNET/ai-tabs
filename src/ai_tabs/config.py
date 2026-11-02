@@ -41,6 +41,7 @@ SETTING_KINDS = {
     "history_days": "number",
     "snapshot_interval": "seconds",
     "splash": "true or false",
+    "theme": "auto, dark or light",
 }
 SETTING_HELP = {
     "data_dir": "folder of the snapshot database",
@@ -51,6 +52,7 @@ SETTING_HELP = {
     "history_days": "how many days the unpinned snapshots stay",
     "snapshot_interval": "seconds between two snapshots of the launchd agent (run `ai-tabs install` after a change)",
     "splash": "show the logo for a moment when the restore screen opens",
+    "theme": "colors of the restore screen; auto follows the macOS appearance",
 }
 
 
@@ -66,6 +68,7 @@ class Settings:
     history_days: int
     snapshot_interval: int
     splash: bool
+    theme: str
 
     @property
     def database(self) -> Path:
@@ -99,6 +102,7 @@ def settings() -> Settings:
         history_days=int(config.get("history_days", 30)),
         snapshot_interval=int(config.get("snapshot_interval", 300)),
         splash=bool(config.get("splash", True)),
+        theme=str(config.get("theme", "auto")),
     )
 
 
@@ -114,11 +118,19 @@ def parse_setting(key: str, text: str) -> str | int | bool:
     kind = SETTING_KINDS.get(key)
     if kind is None:
         raise ValueError(f"unknown setting {key!r}; the settings are {', '.join(SETTING_KINDS)}")
-    if kind == "folder":
-        return str(Path(text).expanduser().resolve())
-    if kind == "true or false":
-        return parse_bool(key, text)
-    return parse_positive(key, text)
+    return PARSERS[kind](key, text)
+
+
+def parse_folder(key: str, text: str) -> str:
+    """Return a folder as an absolute path."""
+    return str(Path(text).expanduser().resolve())
+
+
+def parse_theme(key: str, text: str) -> str:
+    """Return `auto`, `dark` or `light`, or raise ValueError."""
+    if text.lower() not in ("auto", "dark", "light"):
+        raise ValueError(f"{key} must be auto, dark or light, not {text!r}")
+    return text.lower()
 
 
 def parse_bool(key: str, text: str) -> bool:
@@ -134,6 +146,15 @@ def parse_positive(key: str, text: str) -> int:
     if not text.isdigit() or int(text) == 0:
         raise ValueError(f"{key} must be a whole number greater than 0, not {text!r}")
     return int(text)
+
+
+PARSERS = {
+    "folder": parse_folder,
+    "true or false": parse_bool,
+    "number": parse_positive,
+    "seconds": parse_positive,
+    "auto, dark or light": parse_theme,
+}
 
 
 def save_config(values: dict[str, object]) -> None:

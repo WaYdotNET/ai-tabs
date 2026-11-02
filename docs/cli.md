@@ -266,7 +266,7 @@ $ ai-tabs config set [OPTIONS] {key} {value}
 
 **Arguments**:
 
-* `key`: One of: data_dir, export_dir, export_latest, backup_dir, backup_keep, history_days, snapshot_interval, splash.  [required]
+* `key`: One of: data_dir, export_dir, export_latest, backup_dir, backup_keep, history_days, snapshot_interval, splash, theme.  [required]
 * `value`: A folder, true or false, or a whole number, as the setting needs.  [required]
 
 **Options**:
@@ -285,7 +285,7 @@ $ ai-tabs config unset [OPTIONS] {key}
 
 **Arguments**:
 
-* `key`: One of: data_dir, export_dir, export_latest, backup_dir, backup_keep, history_days, snapshot_interval, splash.  [required]
+* `key`: One of: data_dir, export_dir, export_latest, backup_dir, backup_keep, history_days, snapshot_interval, splash, theme.  [required]
 
 **Options**:
 

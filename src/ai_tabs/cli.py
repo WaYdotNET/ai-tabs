@@ -32,6 +32,7 @@ from .display import console, print_sessions
 from .iterm import iterm_is_running
 from .models import Window, positioned_tabs
 from .opener import open_windows
+from .palette import chosen_palette
 from .plan import keep_positions, print_plan, resolve_duplicates
 from .screen import show_splash
 from .snapshot import take_snapshot
@@ -175,7 +176,7 @@ def show(reference: Annotated[str, typer.Argument(metavar="SNAPSHOT", help=SNAPS
     the folder of each pane. `●` marks the agent sessions that still run: `restore` opens
     only their folder, and does not resume them.
     """
-    print_sessions(resolve_snapshot(reference))
+    print_sessions(resolve_snapshot(reference), chosen_palette())
 
 
 @app.command()

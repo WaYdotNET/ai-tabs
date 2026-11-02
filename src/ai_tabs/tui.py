@@ -29,8 +29,9 @@ from .config import (
 )
 from .diff import render_changes
 from .display import snapshot_markup, tab_markup, tab_matches
-from .logo import BLUE, CYAN, GOLD, GREEN, NAVY, NAVY_DEEP, NAVY_LIGHT, PURPLE, RED, WHITE, logo_compact
+from .logo import logo_compact
 from .models import Tab, Window, positioned_tabs
+from .palette import DARK, LIGHT, Palette, chosen_palette, other_palette
 from .plan import default_positions, plan_text, resolve_duplicates
 
 KEYS = [
@@ -46,21 +47,28 @@ KEYS = [
     ("e", "export the snapshot as Markdown to export_dir"),
     ("o", "change the settings"),
     ("s", "take a snapshot now"),
+    ("t", "switch between the dark and the light theme"),
     ("q, esc", "quit"),
 ]
 
-# The cursor is the logo blue with white text: white on the logo cyan is hard to read.
-THEME = Theme(name="ai-tabs", primary=CYAN, secondary=PURPLE, accent=GOLD, warning=GOLD, error=RED,
-              success=GREEN, foreground=WHITE, background=NAVY_DEEP, surface=NAVY, panel=NAVY_LIGHT, dark=True,
-              variables={"block-cursor-background": BLUE, "block-cursor-foreground": WHITE,
-                         "block-cursor-blurred-background": NAVY_LIGHT})
+
+def textual_theme(colors: Palette) -> Theme:
+    """Return the Textual theme of a palette.
+
+    The cursor has its own color: the text on the plain primary color is hard to read.
+    """
+    return Theme(name=colors.name, primary=colors.cyan, secondary=colors.purple, accent=colors.gold,
+                 warning=colors.gold, error=colors.red, success=colors.green, foreground=colors.foreground,
+                 background=colors.background, surface=colors.surface, panel=colors.panel, dark=colors.dark,
+                 variables={"block-cursor-background": colors.cursor, "block-cursor-foreground": colors.foreground,
+                            "block-cursor-blurred-background": colors.panel})
 
 
-def keys_help() -> Text:
+def keys_help(colors: Palette) -> Text:
     """Return the list of keys, with the keys in the logo cyan."""
     lines = Text()
     for key, action in KEYS:
-        lines.append(f"{key:<10} ", style=f"bold {CYAN}")
+        lines.append(f"{key:<10} ", style=f"bold {colors.cyan}")
         lines.append(f"{action}\n")
     lines.rstrip()
     return lines
@@ -120,16 +128,6 @@ class RestoreChoice:
     open_tabs: bool
 
 
-def tab_prompt(position: str, tab: Tab, checked: bool) -> Text:
-    """Return the entry of one tab in the tab list: a check mark, the tab heading and its panes.
-
-    The blank last line separates the entries.
-    """
-    box = f"[bold {GREEN}]◉[/]" if checked else "[dim]○[/]"
-    first, *rest = tab_markup(position, tab).split("\n")
-    return Text.from_markup("\n".join([f"{box} {first}", *(f"  {line}" for line in rest), ""]))
-
-
 class InfoScreen(ModalScreen[None]):
     """A window over the restore screen with a title and a text. Escape or q closes it."""
 
@@ -179,6 +177,7 @@ class RestoreApp(App[RestoreChoice]):
         Binding("s", "snapshot", "snapshot", show=False),
         Binding("e", "export", "export", show=False),
         Binding("o", "settings", "settings", show=False),
+        Binding("t", "switch_theme", "theme", show=False),
         Binding("a", "toggle_all", "all", show=False),
         Binding("tab,shift+tab", "switch_panel", "switch panel", show=False, priority=True),
         Binding("escape", "leave", "back", show=False),
@@ -194,13 +193,14 @@ class RestoreApp(App[RestoreChoice]):
         self.summaries = store.summaries()
         self.snapshot_id = start_id or store.recommended_id() or ""
         self.open_tabs = open_tabs
+        self.palette = chosen_palette()
         self.windows: list[Window] = []
         self.tabs: list[tuple[str, Tab]] = []
         self.checked: dict[str, bool] = {}
 
     def compose(self) -> ComposeResult:
         """Lay out the logo bar, the snapshot list, the search field and the tab list."""
-        yield Static(logo_compact(), id="brand")
+        yield Static(logo_compact(self.palette), id="brand")
         with Horizontal():
             yield ListView(*self.snapshot_items(), id="snapshots", initial_index=self.current_index())
             with Vertical(id="right"):
@@ -210,8 +210,17 @@ class RestoreApp(App[RestoreChoice]):
 
     def snapshot_items(self) -> list[ListItem]:
         """Return one entry of the snapshot list for each snapshot, newest first."""
-        return [ListItem(Label(Text.from_markup(snapshot_markup(summary, newest=index == 0))))
+        return [ListItem(Label(Text.from_markup(snapshot_markup(summary, index == 0, self.palette))))
                 for index, summary in enumerate(self.summaries)]
+
+    def tab_prompt(self, position: str, tab: Tab, checked: bool) -> Text:
+        """Return the entry of one tab in the tab list: a check mark, the tab heading and its panes.
+
+        The blank last line separates the entries.
+        """
+        box = f"[bold {self.palette.green}]◉[/]" if checked else "[dim]○[/]"
+        first, *rest = tab_markup(position, tab, self.palette).split("\n")
+        return Text.from_markup("\n".join([f"{box} {first}", *(f"  {line}" for line in rest), ""]))
 
     def current_index(self) -> int:
         """Return the position of the current snapshot in the snapshot list."""
@@ -223,15 +232,28 @@ class RestoreApp(App[RestoreChoice]):
         return not isinstance(self.screen, ModalScreen)
 
     def on_mount(self) -> None:
-        """Use the logo colors, show the tabs of the starting snapshot and put the focus on them."""
-        self.register_theme(THEME)
-        self.theme = THEME.name
+        """Use the colors of the `theme` setting, show the starting snapshot and focus its tabs."""
+        self.register_theme(textual_theme(DARK))
+        self.register_theme(textual_theme(LIGHT))
         self.query_one("#snapshots").border_title = "Snapshots"
-        mode = "" if self.open_tabs else " · dry run: Enter prints the commands"
-        self.query_one("#right").border_title = f"Tabs   [{GREEN}]●[/] still runs{mode}"
+        self.paint()
         if self.summaries:
             self.load_snapshot(self.summaries[self.current_index()].id)
         self.query_one("#tabs").focus()
+
+    def paint(self) -> None:
+        """Apply the current palette to the theme, the logo bar and the title of the tab panel."""
+        self.theme = self.palette.name
+        self.query_one("#brand", Static).update(logo_compact(self.palette))
+        mode = "" if self.open_tabs else " · dry run: Enter prints the commands"
+        self.query_one("#right").border_title = f"Tabs   [{self.palette.green}]●[/] still runs{mode}"
+
+    async def action_switch_theme(self) -> None:
+        """Switch between the dark and the light theme, for this run only."""
+        self.palette = other_palette(self.palette)
+        self.paint()
+        self.show_tabs()
+        await self.reload_snapshot_list()
 
     def load_snapshot(self, wanted: str) -> None:
         """Show the tabs of a snapshot. The tabs without a running agent start selected."""
@@ -250,7 +272,7 @@ class RestoreApp(App[RestoreChoice]):
         tab_list = self.query_one("#tabs", OptionList)
         highlighted = tab_list.highlighted or 0
         tab_list.clear_options()
-        tab_list.add_options([Option(tab_prompt(position, tab, self.checked[position]), id=position)
+        tab_list.add_options([Option(self.tab_prompt(position, tab, self.checked[position]), id=position)
                               for position, tab in self.tabs if tab_matches(tab, query)])
         if tab_list.option_count:
             tab_list.highlighted = min(highlighted, tab_list.option_count - 1)
@@ -324,7 +346,7 @@ class RestoreApp(App[RestoreChoice]):
 
     def action_keys(self) -> None:
         """Show all the keys of the restore screen."""
-        self.push_screen(InfoScreen("Keys", Group(logo_compact(), Text(""), keys_help())))
+        self.push_screen(InfoScreen("Keys", Group(logo_compact(self.palette), Text(""), keys_help(self.palette))))
 
     async def action_pin(self) -> None:
         """Pin the current snapshot, or remove its pin."""
