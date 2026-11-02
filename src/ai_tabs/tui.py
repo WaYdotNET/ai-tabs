@@ -26,6 +26,7 @@ from .config import (
     save_config,
     setting_text,
     settings,
+    write_config,
 )
 from .diff import render_changes
 from .display import snapshot_markup, tab_markup, tab_matches
@@ -47,7 +48,7 @@ KEYS = [
     ("e", "export the snapshot as Markdown to export_dir"),
     ("o", "change the settings"),
     ("s", "take a snapshot now"),
-    ("t", "switch between the dark and the light theme"),
+    ("t", "switch between the dark and the light theme, and save it in the settings"),
     ("q, esc", "quit"),
 ]
 
@@ -249,8 +250,9 @@ class RestoreApp(App[RestoreChoice]):
         self.query_one("#right").border_title = f"Tabs   [{self.palette.green}]●[/] still runs{mode}"
 
     async def action_switch_theme(self) -> None:
-        """Switch between the dark and the light theme, for this run only."""
+        """Switch between the dark and the light theme, and save the choice as the `theme` setting."""
         self.palette = other_palette(self.palette)
+        write_config({"theme": "dark" if self.palette.dark else "light"})
         self.paint()
         self.show_tabs()
         await self.reload_snapshot_list()

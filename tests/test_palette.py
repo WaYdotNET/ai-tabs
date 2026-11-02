@@ -34,7 +34,7 @@ def test_an_unknown_theme_is_refused():
         config.parse_setting("theme", "blue")
 
 
-def test_t_switches_the_restore_screen_to_the_other_theme():
+def test_t_switches_to_the_other_theme_and_saves_it():
     config.write_config({"theme": "dark"})
     store.insert_snapshot(windows_with_tabs(2), {"opened": [], "closed": [], "changed": []},
                           datetime(2026, 11, 3, 10, 0, 0))
@@ -52,3 +52,4 @@ def test_t_switches_the_restore_screen_to_the_other_theme():
     asyncio.run(drive())
 
     assert themes == ["ai-tabs-dark", "ai-tabs-light"]
+    assert config.read_config()["theme"] == "light"
