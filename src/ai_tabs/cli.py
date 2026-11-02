@@ -302,7 +302,8 @@ def uninstall() -> None:
     print(f"Removed {LAUNCHD_PLIST}. The data stays in {settings().data_dir}.")
 
 
-config_app = typer.Typer(rich_markup_mode="markdown", help=f"Show or change the settings in `{CONFIG_FILE}`.")
+CONFIG_HELP = "Show or change the settings in `$XDG_CONFIG_HOME/ai-tabs/config.toml` (default `~/.config/ai-tabs`)."
+config_app = typer.Typer(rich_markup_mode="markdown", help=CONFIG_HELP)
 app.add_typer(config_app, name="config")
 
 

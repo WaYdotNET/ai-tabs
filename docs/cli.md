@@ -237,7 +237,7 @@ $ ai-tabs uninstall [OPTIONS]
 
 ## `ai-tabs config`
 
-Show or change the settings in `/Users/waydotnet/.config/ai-tabs/config.toml`.
+Show or change the settings in `$XDG_CONFIG_HOME/ai-tabs/config.toml` (default `~/.config/ai-tabs`).
 
 **Usage**:
 
