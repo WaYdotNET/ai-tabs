@@ -1,0 +1,44 @@
+[project]
+name = "ai-tabs"
+version = "0.1.0"
+description = "Save and restore iTerm2 tabs with their omp and Claude Code sessions."
+readme = "README.md"
+requires-python = ">=3.15"
+dependencies = [
+    "iterm2>=2.30",
+    "rich>=15.0",
+    "textual>=8.2",
+    "typer>=0.27",
+]
+keywords = ["iterm2", "claude-code", "omp", "terminal", "session-restore"]
+classifiers = [
+    "Environment :: Console",
+    "Environment :: MacOS X",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.15",
+    "Topic :: Terminals",
+]
+
+[project.scripts]
+ai-tabs = "ai_tabs.cli:run"
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "ruff>=0.14",
+]
+
+[build-system]
+requires = ["uv_build>=0.9,<0.14"]
+build-backend = "uv_build"
+
+[tool.ruff]
+line-length = 120
+target-version = "py315"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
