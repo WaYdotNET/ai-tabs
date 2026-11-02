@@ -40,6 +40,8 @@ SETTING_KINDS = {
     "backup_keep": "number",
     "history_days": "number",
     "snapshot_interval": "seconds",
+    "splash": "true or false",
+    "tui_font_size": "number",
 }
 SETTING_HELP = {
     "data_dir": "folder of the snapshot database",
@@ -49,6 +51,8 @@ SETTING_HELP = {
     "backup_keep": "how many daily backups stay",
     "history_days": "how many days the unpinned snapshots stay",
     "snapshot_interval": "seconds between two snapshots of the launchd agent (run `ai-tabs install` after a change)",
+    "splash": "show the logo for a moment when the restore screen opens",
+    "tui_font_size": "text size of the restore screen in iTerm2; empty keeps the font of the session",
 }
 
 
@@ -63,6 +67,8 @@ class Settings:
     backup_keep: int
     history_days: int
     snapshot_interval: int
+    splash: bool
+    tui_font_size: int | None
 
     @property
     def database(self) -> Path:
@@ -95,6 +101,8 @@ def settings() -> Settings:
         backup_keep=int(config.get("backup_keep", 7)),
         history_days=int(config.get("history_days", 30)),
         snapshot_interval=int(config.get("snapshot_interval", 300)),
+        splash=bool(config.get("splash", True)),
+        tui_font_size=int(config["tui_font_size"]) if "tui_font_size" in config else None,
     )
 
 

@@ -1,3 +1,5 @@
+<p align="center"><img src="src/ai_tabs/assets/logo.png" alt="ai-tabs" width="360"></p>
+
 # ai-tabs
 
 `ai-tabs` saves your iTerm2 tabs, and the omp and Claude Code sessions in them. After a reboot or a crash, it opens the tabs again and resumes each agent session.
@@ -5,7 +7,7 @@
 - It takes a snapshot every 5 minutes through the iTerm2 Python API. A snapshot holds the windows, the tab order, titles and colors, the split layout, the iTerm2 profile of each pane, and the agent session in each pane.
 - It keeps the snapshots in a SQLite database for 30 days. It pins the last snapshot before a reboot, or before many tabs close at once. The history never deletes pinned snapshots.
 - A terminal screen lets you pick a snapshot and the tabs to open again.
-- It can also write Markdown views of the snapshots, for example into an Obsidian vault.
+- It can also export the snapshots as Markdown files, for example into an Obsidian vault.
 
 ## Requirements
 
@@ -44,11 +46,13 @@ To stop the snapshots, run `ai-tabs uninstall`. The database, the backups and th
 
 ## Use
 
-Run `ai-tabs` without a command to open the restore screen:
+Run `ai-tabs` without a command to open the restore screen. In iTerm2, the logo shows for a moment first (setting `splash`):
 
+- The top bar shows the ai-tabs name. Press `?` for the full logo and the list of all the keys.
 - The left panel shows the snapshots, newest first. 📌 marks a pinned snapshot. A yellow line shows how many panes opened and closed.
 - The right panel shows the tabs of the selected snapshot. A bar in the tab color comes first, then the tab title, the session title and the folder. A green `●` marks an agent session that still runs.
 - After a reboot or a crash, the screen starts on the last snapshot from before it, until you restore it.
+- With `tui_font_size`, the iTerm2 session uses that text size while the restore screen is open, and gets its own font back when the screen closes.
 
 | Key | Action |
 |---|---|
@@ -106,6 +110,8 @@ A setting takes its value from, in order of priority:
 | `backup_keep` | `7` | How many daily backups stay |
 | `history_days` | `30` | How many days the unpinned snapshots stay |
 | `snapshot_interval` | `300` | Seconds between two snapshots. Run `ai-tabs install` after a change |
+| `splash` | `true` | Show the logo for a moment when the restore screen opens, in iTerm2 |
+| `tui_font_size` | empty | Text size of the restore screen, in points. Empty keeps the font of the session |
 
 `ai-tabs config` shows each value and where it comes from. `ai-tabs config set KEY VALUE` and `ai-tabs config unset KEY` change the file. The settings window of the restore screen (`o`) writes the same file. A new `data_dir` takes effect at the next start.
 

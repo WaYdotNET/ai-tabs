@@ -4,6 +4,7 @@ import subprocess
 import sys
 from dataclasses import dataclass
 
+from rich.console import Group, RenderableType
 from rich.markdown import Markdown
 from rich.text import Text
 from textual import work
@@ -27,6 +28,7 @@ from .config import (
 )
 from .diff import render_changes
 from .display import snapshot_markup, tab_markup, tab_matches
+from .logo import logo_compact, logo_full
 from .models import Tab, Window, positioned_tabs
 from .plan import default_positions, plan_text, resolve_duplicates
 
@@ -119,7 +121,7 @@ class InfoScreen(ModalScreen[None]):
     """
     BINDINGS = [Binding("escape,q", "dismiss", "close")]
 
-    def __init__(self, title: str, body: Text | Markdown) -> None:
+    def __init__(self, title: str, body: RenderableType) -> None:
         """Keep the title and the text to show."""
         super().__init__()
         self.info_title = title
@@ -145,6 +147,7 @@ class RestoreApp(App[RestoreChoice]):
     #right { border: round $primary; }
     #tabs { height: 1fr; border: none; text-wrap: nowrap; text-overflow: ellipsis; }
     #filter { border: none; height: 1; padding: 0 1; }
+    #brand { dock: top; height: 1; padding: 0 1; text-align: right; }
     ListItem { padding: 0 1 1 1; }
     """
     BINDINGS = [
@@ -178,7 +181,8 @@ class RestoreApp(App[RestoreChoice]):
         self.checked: dict[str, bool] = {}
 
     def compose(self) -> ComposeResult:
-        """Lay out the snapshot list, the search field and the tab list."""
+        """Lay out the logo bar, the snapshot list, the search field and the tab list."""
+        yield Static(logo_compact(), id="brand")
         with Horizontal():
             yield ListView(*self.snapshot_items(), id="snapshots", initial_index=self.current_index())
             with Vertical(id="right"):
@@ -300,7 +304,7 @@ class RestoreApp(App[RestoreChoice]):
 
     def action_keys(self) -> None:
         """Show all the keys of the restore screen."""
-        self.push_screen(InfoScreen("Keys", Text(KEYS_HELP)))
+        self.push_screen(InfoScreen("Keys", Group(logo_full(), Text(""), Text(KEYS_HELP))))
 
     async def action_pin(self) -> None:
         """Pin the current snapshot, or remove its pin."""

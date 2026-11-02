@@ -33,6 +33,7 @@ from .iterm import iterm_is_running
 from .models import Window, positioned_tabs
 from .opener import open_windows
 from .plan import keep_positions, print_plan, resolve_duplicates
+from .screen import show_splash, text_size
 from .snapshot import take_snapshot
 from .tui import RestoreApp, RestoreChoice
 
@@ -102,9 +103,11 @@ def choice_from_options(snapshot: store.Snapshot, tabs: list[str] | None, open_t
 
 
 def choice_from_screen(start_id: str | None, open_tabs: bool) -> RestoreChoice:
-    """Ask with the restore screen. Stop quietly when the user quits it."""
+    """Ask with the restore screen, after the splash and with `tui_font_size`. Stop quietly on quit."""
     require_terminal("--all or --tab")
-    choice = RestoreApp(start_id, open_tabs).run()
+    show_splash()
+    with text_size():
+        choice = RestoreApp(start_id, open_tabs).run()
     if choice is None:
         raise typer.Exit()
     return choice
