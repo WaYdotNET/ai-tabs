@@ -7,7 +7,8 @@ from ai_tabs import agents, config
 
 @pytest.fixture(autouse=True)
 def isolated_data(tmp_path, monkeypatch):
-    """Point the data folder and the configuration file at a temporary folder."""
+    """Point the data folder and the configuration file at a temporary folder, outside iTerm2."""
+    monkeypatch.delenv("ITERM_SESSION_ID", raising=False)
     monkeypatch.setenv(config.DATA_DIR_ENV, str(tmp_path / "data"))
     monkeypatch.setattr(config, "CONFIG_FILE", tmp_path / "config.toml")
     config.settings.cache_clear()

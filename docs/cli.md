@@ -57,21 +57,23 @@ $ ai-tabs snapshot [OPTIONS]
 
 Open the saved tabs again and resume the agent sessions.
 
-The tabs open in new windows, with the saved order, title, color and window frame. Each
-pane runs `omp --resume` or `claude --resume` in the agent folder. A shell pane only goes
-to its folder.
+The tabs open in new windows, with the saved order, title, color and window frame, or as
+new tabs of this window. Each pane runs `omp --resume` or `claude --resume` in the agent
+folder. A shell pane only goes to its folder.
 
 If an agent session still runs in another tab, its pane only goes to the agent folder:
 two processes on the same session file corrupt it.
 
-Without `--tab` or `--all`, the restore screen opens. After a reboot or a crash, it starts
-on the last snapshot from before it, when nobody restored it yet.
+Without `--tab` or `--all`, the restore screen opens, and asks where to open the tabs.
+After a reboot or a crash, it starts on the last snapshot from before it, when nobody
+restored it yet.
 
 **Examples**
 
 * `ai-tabs restore`: pick the snapshot and the tabs on the restore screen.
 * `ai-tabs restore --from 2026-11-02/21-48-18`: open the screen on a history entry.
 * `ai-tabs restore -t 1.3 -t 1.8`: restore two tabs of the latest snapshot, without the screen.
+* `ai-tabs restore --all --here`: restore all tabs as new tabs of this window.
 * `ai-tabs restore --all --dry-run`: show the commands for all tabs, open nothing.
 
 **Usage**:
@@ -86,6 +88,7 @@ $ ai-tabs restore [OPTIONS]
 * `--all`: Restore all tabs, without the restore screen.
 * `--dry-run`: Show the commands, open nothing.
 * `--from <str>`: Snapshot: `latest` or an ID from `ai-tabs history` (for example 2026-11-02/21-48-18). Without it, the restore screen starts on the recommended snapshot, and `--tab` and `--all` use the latest one.
+* `--here`: With --tab or --all: open the tabs in this window.
 * `--help`: Show this message and exit.
 
 ## `ai-tabs show`

@@ -1,5 +1,6 @@
 """The restore screen: the snapshots on the left, the tabs of the selected snapshot on the right."""
 
+import os
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -121,12 +122,40 @@ class SettingsScreen(ModalScreen[bool]):
 
 @dataclass
 class RestoreChoice:
-    """What the restore screen returns: the snapshot, its selected tabs, and whether to open
-    them (`open_tabs`) or only print their commands."""
+    """What the restore screen returns: the snapshot, its selected tabs, whether to open
+    them (`open_tabs`) or only print their commands, and whether they open in this window (`here`)."""
 
     snapshot_id: str
     positions: list[str]
     open_tabs: bool
+    here: bool = False
+
+
+NEW_WINDOWS, THIS_WINDOW = "new", "here"
+
+
+class WhereScreen(ModalScreen[bool | None]):
+    """A window that asks where the tabs open. It returns True for this window, False for new
+    windows, and None when escape closes it."""
+
+    CSS = """
+    WhereScreen { align: center middle; }
+    #where { width: 60; height: auto; border: round $primary; background: $surface; }
+    """
+    BINDINGS = [Binding("escape,q", "dismiss(None)", "cancel")]
+
+    def compose(self) -> ComposeResult:
+        """Show the two places where the tabs can open."""
+        yield OptionList(Option("New windows, with the saved windows and frames", id=NEW_WINDOWS),
+                         Option("New tabs in this window", id=THIS_WINDOW), id="where")
+
+    def on_mount(self) -> None:
+        """Show the question on the border."""
+        self.query_one("#where").border_title = "Where do the tabs open?"
+
+    def on_option_list_option_selected(self, event: OptionList.OptionSelected) -> None:
+        """Close the window with the chosen place."""
+        self.dismiss(event.option.id == THIS_WINDOW)
 
 
 class InfoScreen(ModalScreen[None]):
@@ -404,9 +433,17 @@ class RestoreApp(App[RestoreChoice]):
                         "a new snapshot_interval after `ai-tabs install`.")
 
     def action_finish(self) -> None:
-        """Close the screen with the selected tabs."""
+        """Close the screen with the selected tabs. Inside iTerm2, ask first where they open."""
         positions = self.selected_positions()
         if not positions:
             self.notify("Select at least one tab (space).", severity="warning")
             return
-        self.exit(RestoreChoice(self.snapshot_id, positions, self.open_tabs))
+        if not self.open_tabs or "ITERM_SESSION_ID" not in os.environ:
+            self.exit(RestoreChoice(self.snapshot_id, positions, self.open_tabs))
+            return
+        self.push_screen(WhereScreen(), lambda here: self.finish_in(positions, here))
+
+    def finish_in(self, positions: list[str], here: bool | None) -> None:
+        """Close the screen with the tabs and the chosen place, or stay open when the question is cancelled."""
+        if here is not None:
+            self.exit(RestoreChoice(self.snapshot_id, positions, self.open_tabs, here))

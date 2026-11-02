@@ -60,7 +60,7 @@ Run `ai-tabs` without a command to open the restore screen. In iTerm2, the logo 
 | `space` | Select or clear a tab |
 | `a` | Select all the visible tabs, or none |
 | `/` | Search tabs, sessions and folders. `esc` leaves the search |
-| `enter` | Restore the selected tabs |
+| `enter` | Restore the selected tabs. In iTerm2, it asks first: new windows, or new tabs in this window |
 | `c` | Show the commands that restore runs |
 | `h` | Show the changes that the snapshot records |
 | `p` | Pin the snapshot, or remove its pin |
@@ -81,7 +81,7 @@ The restore opens new windows with the saved order, frame, titles, colors, split
 |---|---|
 | `ai-tabs` | Open the restore screen |
 | `ai-tabs snapshot` | Take a snapshot now |
-| `ai-tabs restore [--from ID] [--tab 1.3 …] [--all] [--dry-run]` | Restore tabs. Without `--tab` or `--all`, it opens the restore screen |
+| `ai-tabs restore [--from ID] [--tab 1.3 …] [--all] [--here] [--dry-run]` | Restore tabs. Without `--tab` or `--all`, it opens the restore screen. `--here` opens the tabs in this window |
 | `ai-tabs show [ID]` | Show the tabs and sessions of a snapshot |
 | `ai-tabs history [--limit N]` | List the snapshots, newest first |
 | `ai-tabs pin ID`, `ai-tabs unpin ID` | Pin a snapshot, or remove its pin |

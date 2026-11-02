@@ -4,6 +4,7 @@ import os
 import shutil
 import subprocess
 import sys
+from dataclasses import replace
 from datetime import date
 from pathlib import Path
 from typing import Annotated
@@ -31,7 +32,7 @@ from .config import (
 from .display import console, print_sessions
 from .iterm import iterm_is_running
 from .models import Window, positioned_tabs
-from .opener import open_windows
+from .opener import open_in_current_window, open_in_new_windows
 from .palette import chosen_palette
 from .plan import keep_positions, print_plan, resolve_duplicates
 from .screen import show_splash
@@ -87,13 +88,14 @@ def check_positions(windows: list[Window], positions: list[str]) -> list[str]:
 
 
 def run_choice(choice: RestoreChoice) -> None:
-    """Open the selected tabs, or print their commands."""
+    """Open the selected tabs in new windows or in this window, or print their commands."""
     windows = resolve_duplicates(resolve_snapshot(choice.snapshot_id).windows)
     if not choice.open_tabs:
         print_plan(windows, choice.positions)
         return
     require_iterm()
-    open_windows(keep_positions(windows, choice.positions))
+    opener = open_in_current_window if choice.here else open_in_new_windows
+    opener(keep_positions(windows, choice.positions))
 
 
 def choice_from_options(snapshot: store.Snapshot, tabs: list[str] | None, open_tabs: bool) -> RestoreChoice:
@@ -140,28 +142,31 @@ def restore(
     all_tabs: Annotated[bool, typer.Option("--all", help="Restore all tabs, without the restore screen.")] = False,
     dry_run: Annotated[bool, typer.Option("--dry-run", help="Show the commands, open nothing.")] = False,
     source: Annotated[str | None, typer.Option("--from", help=FROM_HELP)] = None,
+    here: Annotated[bool, typer.Option("--here", help="With --tab or --all: open the tabs in this window.")] = False,
 ) -> None:
     """Open the saved tabs again and resume the agent sessions.
 
-    The tabs open in new windows, with the saved order, title, color and window frame. Each
-    pane runs `omp --resume` or `claude --resume` in the agent folder. A shell pane only goes
-    to its folder.
+    The tabs open in new windows, with the saved order, title, color and window frame, or as
+    new tabs of this window. Each pane runs `omp --resume` or `claude --resume` in the agent
+    folder. A shell pane only goes to its folder.
 
     If an agent session still runs in another tab, its pane only goes to the agent folder:
     two processes on the same session file corrupt it.
 
-    Without `--tab` or `--all`, the restore screen opens. After a reboot or a crash, it starts
-    on the last snapshot from before it, when nobody restored it yet.
+    Without `--tab` or `--all`, the restore screen opens, and asks where to open the tabs.
+    After a reboot or a crash, it starts on the last snapshot from before it, when nobody
+    restored it yet.
 
     **Examples**
 
     * `ai-tabs restore`: pick the snapshot and the tabs on the restore screen.
     * `ai-tabs restore --from 2026-11-02/21-48-18`: open the screen on a history entry.
     * `ai-tabs restore -t 1.3 -t 1.8`: restore two tabs of the latest snapshot, without the screen.
+    * `ai-tabs restore --all --here`: restore all tabs as new tabs of this window.
     * `ai-tabs restore --all --dry-run`: show the commands for all tabs, open nothing.
     """
     if tabs or all_tabs:
-        choice = choice_from_options(resolve_snapshot(source or store.LATEST), tabs, not dry_run)
+        choice = replace(choice_from_options(resolve_snapshot(source or store.LATEST), tabs, not dry_run), here=here)
     else:
         start_id = resolve_snapshot(source).summary.id if source else None
         choice = choice_from_screen(start_id, not dry_run)

@@ -67,3 +67,31 @@ def test_enter_with_nothing_selected_keeps_the_screen_open():
     app = run_keys(RestoreApp(None, open_tabs=True), "a", "enter")
 
     assert app.return_value is None
+
+
+def test_inside_iterm2_enter_asks_where_and_down_enter_opens_in_this_window(monkeypatch):
+    monkeypatch.setenv("ITERM_SESSION_ID", "w0t0p0:ABC")
+    store.insert_snapshot(three_tabs(), NO_CHANGES, datetime(2026, 11, 2, 10, 0, 0))
+
+    app = run_keys(RestoreApp(None, open_tabs=True), "enter", "down", "enter")
+
+    assert app.return_value.here is True
+    assert app.return_value.positions == ["1.1", "1.2", "1.3"]
+
+
+def test_inside_iterm2_enter_twice_opens_in_new_windows(monkeypatch):
+    monkeypatch.setenv("ITERM_SESSION_ID", "w0t0p0:ABC")
+    store.insert_snapshot(three_tabs(), NO_CHANGES, datetime(2026, 11, 2, 10, 0, 0))
+
+    app = run_keys(RestoreApp(None, open_tabs=True), "enter", "enter")
+
+    assert app.return_value.here is False
+
+
+def test_escape_on_the_where_question_keeps_the_screen_open(monkeypatch):
+    monkeypatch.setenv("ITERM_SESSION_ID", "w0t0p0:ABC")
+    store.insert_snapshot(three_tabs(), NO_CHANGES, datetime(2026, 11, 2, 10, 0, 0))
+
+    app = run_keys(RestoreApp(None, open_tabs=True), "enter", "escape")
+
+    assert app.return_value is None

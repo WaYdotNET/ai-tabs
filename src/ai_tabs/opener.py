@@ -2,6 +2,8 @@
 
 import asyncio
 import contextlib
+import os
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from itertools import pairwise
 
@@ -11,7 +13,7 @@ from websockets.exceptions import ConnectionClosed
 
 from .agents import find_agent
 from .display import console, tab_heading
-from .models import Agent, Pane, Tab, Window
+from .models import Agent, Pane, Tab, Window, tab_count
 from .palette import chosen_palette
 from .plan import pane_command
 
@@ -33,12 +35,16 @@ class Target:
 
 
 @dataclass(frozen=True)
-class Resumed:
-    """An agent session that restore resumes in a new iTerm2 session."""
+class Opened:
+    """A saved pane in its new iTerm2 session, with the heading of its tab."""
 
     heading: str
-    agent: Agent
+    pane: Pane
     session: iterm2.Session
+
+
+Build = Callable[[Target], Awaitable[list[Opened]]]
+"""A step that opens the tabs and the panes, and returns them before their commands run."""
 
 
 def first_pane(node: dict) -> int:
@@ -149,10 +155,10 @@ async def wait_for_prompt(connection: iterm2.Connection, session_id: str) -> Non
             await asyncio.wait_for(monitor.async_get(), PROMPT_TIMEOUT)
 
 
-async def start_pane(connection: iterm2.Connection, session: iterm2.Session, pane: Pane) -> None:
+async def start_pane(connection: iterm2.Connection, opened: Opened) -> None:
     """Send the pane command to the session when its shell is ready."""
-    await wait_for_prompt(connection, session.session_id)
-    await session.async_send_text(pane_command(pane) + "\n")
+    await wait_for_prompt(connection, opened.session.session_id)
+    await opened.session.async_send_text(pane_command(opened.pane) + "\n")
 
 
 def resumes_agent(pane: Pane) -> bool:
@@ -160,35 +166,62 @@ def resumes_agent(pane: Pane) -> bool:
     return pane.agent is not None and pane_command(pane) == pane.agent.resume
 
 
-async def fill_tab(target: Target, tab: iterm2.Tab, saved: Tab) -> list[Resumed]:
-    """Open the saved panes in a new tab and send each one its command.
+async def fill_tab(target: Target, tab: iterm2.Tab, saved: Tab) -> list[Opened]:
+    """Open the saved panes in a new tab, with the saved title, color and sizes.
 
-    Return the agent sessions that the tab resumes.
+    The commands do not run yet: all the panes of all the tabs start together after.
     """
     sessions = await open_panes(target, tab.current_session, saved)
     await apply_tab_style(tab, saved, sessions)
     await apply_sizes(target, tab.tab_id, saved, sessions)
-    opened = list(zip(sessions, saved.panes, strict=True))
-    await asyncio.gather(*(start_pane(target.connection, session, pane) for session, pane in opened))
     heading = tab_heading(saved)
-    return [Resumed(heading, pane.agent, session) for session, pane in opened if resumes_agent(pane)]
+    return [Opened(heading, pane, session) for session, pane in zip(sessions, saved.panes, strict=True)]
 
 
-async def restore_window(target: Target, saved: Window) -> list[Resumed]:
+async def restore_window(target: Target, saved: Window) -> list[Opened]:
     """Open one saved window with all its tabs, then move it to its saved frame.
 
     The frame is set last: iTerm2 ignores a frame set before the window finishes its layout.
-    Return the agent sessions that the window resumes.
     """
     window = await iterm2.Window.async_create(target.connection, profile=tab_profile(target, saved.tabs[0]))
-    resumed = []
+    opened = []
     for index, saved_tab in enumerate(saved.tabs):
         tab = window.current_tab if index == 0 else await window.async_create_tab(
             profile=tab_profile(target, saved_tab))
-        resumed += await fill_tab(target, tab, saved_tab)
+        opened += await fill_tab(target, tab, saved_tab)
     x, y, width, height = saved.frame
     await window.async_set_frame(iterm2.Frame(iterm2.Point(x, y), iterm2.Size(width, height)))
-    return resumed
+    return opened
+
+
+async def build_new_windows(target: Target, windows: list[Window]) -> list[Opened]:
+    """Open every saved window as a new iTerm2 window."""
+    opened = []
+    for window in windows:
+        opened += await restore_window(target, window)
+    return opened
+
+
+def current_window(target: Target) -> iterm2.Window | None:
+    """Return the iTerm2 window that runs this process, or None outside iTerm2."""
+    session_id = os.environ.get("ITERM_SESSION_ID", "").partition(":")[2]
+    session = target.app.get_session_by_id(session_id) if session_id else None
+    return target.app.get_window_and_tab_for_session(session)[0] if session else None
+
+
+async def build_in_current_window(target: Target, windows: list[Window]) -> list[Opened]:
+    """Add every saved tab to the window of this process, after its tabs. The saved frames do not apply.
+
+    Outside iTerm2, the tabs open in new windows.
+    """
+    window = current_window(target)
+    if window is None:
+        return await build_new_windows(target, windows)
+    opened = []
+    for saved_tab in (tab for saved in windows for tab in saved.tabs):
+        tab = await window.async_create_tab(profile=tab_profile(target, saved_tab))
+        opened += await fill_tab(target, tab, saved_tab)
+    return opened
 
 
 def is_same_session(found: Agent | None, agent: Agent) -> bool:
@@ -196,26 +229,31 @@ def is_same_session(found: Agent | None, agent: Agent) -> bool:
     return found is not None and found.session_id == agent.session_id
 
 
-async def agent_started(resumed: Resumed) -> bool:
+async def agent_started(opened: Opened) -> bool:
     """Tell if the resumed session runs on its tty within START_CHECKS checks.
 
     The check only watches: a second resume of the same session can corrupt its session file.
     """
-    tty = await resumed.session.async_get_variable("tty") or ""
+    tty = await opened.session.async_get_variable("tty") or ""
     for _ in range(START_CHECKS):
-        if is_same_session(await asyncio.to_thread(find_agent, tty), resumed.agent):
+        if is_same_session(await asyncio.to_thread(find_agent, tty), opened.pane.agent):
             return True
         await asyncio.sleep(START_CHECK_INTERVAL)
     return False
 
 
-async def report_not_started(resumed: list[Resumed]) -> None:
-    """Print one line for each resumed agent session that does not start."""
+async def report_not_started(resumed: list[Opened]) -> None:
+    """Wait for the resumed agent sessions to start, and print the ones that do not start."""
+    if not resumed:
+        return
+    console.print(f"Waiting for {len(resumed)} agent sessions to start, for at most "
+                  f"{START_CHECKS * START_CHECK_INTERVAL} s. Ctrl+C stops the wait, the tabs stay open.")
     started = await asyncio.gather(*(agent_started(item) for item in resumed))
     failed = [item for item, ok in zip(resumed, started, strict=True) if not ok]
     for item in failed:
         console.print(f"[{chosen_palette().gold}]did not start[/]  {escape(item.heading)}  "
-                      f"{item.agent.kind} {item.agent.session_id}")
+                      f"{item.pane.agent.kind} {item.pane.agent.session_id}")
+    console.print(f"{len(resumed) - len(failed)} of {len(resumed)} agent sessions started.")
 
 
 def ignore_closed_connection(loop: asyncio.AbstractEventLoop, context: dict) -> None:
@@ -228,17 +266,29 @@ def ignore_closed_connection(loop: asyncio.AbstractEventLoop, context: dict) -> 
         loop.default_exception_handler(context)
 
 
-def open_windows(windows: list[Window]) -> None:
-    """Open the windows in iTerm2, then report the agent sessions that do not start."""
+def run_restore(build: Build, tabs: int) -> None:
+    """Open `tabs` tabs with `build`, start all the panes together, then check the agent sessions."""
 
     async def restore_all(connection: iterm2.Connection) -> None:
         asyncio.get_running_loop().set_exception_handler(ignore_closed_connection)
         # The App object registers the delegate that Window.async_create_tab needs.
         app = await iterm2.async_get_app(connection)
-        target = Target(connection, app, await profile_names(connection))
-        resumed = []
-        for window in windows:
-            resumed += await restore_window(target, window)
-        await report_not_started(resumed)
+        opened = await build(Target(connection, app, await profile_names(connection)))
+        console.print(f"Opened {tabs} tabs. Starting {len(opened)} panes…")
+        await asyncio.gather(*(start_pane(connection, item) for item in opened))
+        await report_not_started([item for item in opened if resumes_agent(item.pane)])
 
-    iterm2.run_until_complete(restore_all)
+    try:
+        iterm2.run_until_complete(restore_all)
+    except KeyboardInterrupt:
+        console.print("Stopped the wait. The tabs stay open.")
+
+
+def open_in_new_windows(windows: list[Window]) -> None:
+    """Open the saved windows as new iTerm2 windows, with their frames."""
+    run_restore(lambda target: build_new_windows(target, windows), tab_count(windows))
+
+
+def open_in_current_window(windows: list[Window]) -> None:
+    """Open the saved tabs as new tabs of the window that runs this process."""
+    run_restore(lambda target: build_in_current_window(target, windows), tab_count(windows))
