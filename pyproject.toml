@@ -3,6 +3,9 @@ name = "ai-tabs"
 version = "0.1.0"
 description = "Save and restore iTerm2 tabs with their omp and Claude Code sessions."
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Carlo Bertini" }]
 requires-python = ">=3.15"
 dependencies = [
     "iterm2>=2.30",
@@ -21,6 +24,11 @@ classifiers = [
     "Programming Language :: Python :: 3.15",
     "Topic :: Terminals",
 ]
+
+[project.urls]
+Homepage = "https://github.com/WaYdotNET/ai-tabs"
+Issues = "https://github.com/WaYdotNET/ai-tabs/issues"
+Changelog = "https://github.com/WaYdotNET/ai-tabs/releases"
 
 [project.scripts]
 ai-tabs = "ai_tabs.cli:run"

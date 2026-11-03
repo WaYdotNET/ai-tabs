@@ -30,7 +30,7 @@ To install it, so that the launchd agent has a stable path:
 uv tool install ai-tabs
 ```
 
-Until the package is on PyPI, install it from GitHub:
+To install the latest `main` branch from GitHub:
 
 ```sh
 uv tool install git+https://github.com/WaYdotNET/ai-tabs
@@ -148,3 +148,18 @@ uv run pytest
 uv run ruff check src tests
 uv run typer ai_tabs.cli utils docs --name ai-tabs --title ai-tabs --output docs/cli.md
 ```
+
+### Release
+
+The `Release` workflow publishes to PyPI when a tag `vX.Y.Z` arrives on GitHub. It runs the tests, checks that the tag is the version in `pyproject.toml`, builds the wheel and the sdist, then uploads them with PyPI Trusted Publishing. No token is stored in GitHub.
+
+```sh
+uv version --bump minor   # or patch, major
+git commit -am "chore: release v$(uv version --short)"
+git tag "v$(uv version --short)"
+git push origin main --tags
+```
+
+## License
+
+MIT. See [LICENSE](LICENSE).
