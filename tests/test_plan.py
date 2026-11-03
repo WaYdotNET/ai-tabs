@@ -1,11 +1,13 @@
-"""Tests for the guard that resumes each agent session in one pane only."""
+"""Tests for the guard that resumes each agent session in one pane only, and for running sessions."""
 
 import copy
+from functools import cache
 
 from factories import agent_pane, tab
 
+from ai_tabs import agents
 from ai_tabs.models import Window
-from ai_tabs.plan import plan_text, resolve_duplicates
+from ai_tabs.plan import fresh_pane_commands, pane_command, plan_text, resolve_duplicates
 
 
 def two_tabs_same_session() -> list[Window]:
@@ -44,3 +46,16 @@ def test_plan_text_shows_the_duplicate_comment():
     text = plan_text(windows, ["1.2"]).plain
 
     assert text == "b  1.2\n  cd /work  # omp session s1 is also in tab 1.1"
+
+
+def test_a_session_that_stops_after_the_screen_opens_resumes(monkeypatch):
+    running = {("omp", "s1")}
+    monkeypatch.setattr(agents, "running_sessions", cache(lambda: frozenset(running)))
+    pane = agent_pane("s1")
+    on_screen = pane_command(pane)
+    running.clear()
+
+    commands = fresh_pane_commands([pane])
+
+    assert on_screen == "cd /work  # omp session s1 still runs"
+    assert commands == ["cd /work && omp --resume s1"]

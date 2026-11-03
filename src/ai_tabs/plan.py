@@ -7,6 +7,7 @@ from dataclasses import replace
 from rich.markup import escape
 from rich.text import Text
 
+from . import agents
 from .agents import is_still_running
 from .display import console, tab_heading
 from .models import Pane, Tab, Window, positioned_tabs
@@ -24,6 +25,16 @@ def pane_command(pane: Pane) -> str:
     if is_still_running(agent):
         return f"cd {shlex.quote(agent.cwd)}  # {agent.kind} session {agent.session_id} still runs"
     return agent.resume
+
+
+def fresh_pane_commands(panes: list[Pane]) -> list[str]:
+    """Return the command of each pane, from a new check of the running agent sessions.
+
+    The restore screen checks the sessions when it opens. A session can stop after that, for
+    example when its old tab closes, and then it must resume.
+    """
+    agents.running_sessions.cache_clear()
+    return [pane_command(pane) for pane in panes]
 
 
 def duplicate_agent(pane: Pane, first_position: str) -> Pane:

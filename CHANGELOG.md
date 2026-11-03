@@ -4,6 +4,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-11-03
+
+### Fixed
+
+- Restore checks again which agent sessions run before it sends the commands. A session whose old tab closed after the restore screen opened now resumes, and no longer opens only its folder.
+
 ## [0.2.0] - 2026-11-03
 
 ### Added
@@ -30,7 +36,8 @@ First release.
 - Markdown export, daily backups, `config` command.
 - Dark and light theme.
 
-[Unreleased]: https://github.com/WaYdotNET/ai-tabs/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/WaYdotNET/ai-tabs/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/WaYdotNET/ai-tabs/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/WaYdotNET/ai-tabs/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/WaYdotNET/ai-tabs/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/WaYdotNET/ai-tabs/releases/tag/v0.1.0

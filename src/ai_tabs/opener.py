@@ -15,7 +15,7 @@ from .agents import find_agent
 from .display import console, tab_heading
 from .models import Agent, Pane, Tab, Window, tab_count
 from .palette import chosen_palette
-from .plan import pane_command
+from .plan import fresh_pane_commands
 
 PROMPT_TIMEOUT = 10
 START_CHECKS = 20
@@ -155,15 +155,15 @@ async def wait_for_prompt(connection: iterm2.Connection, session_id: str) -> Non
             await asyncio.wait_for(monitor.async_get(), PROMPT_TIMEOUT)
 
 
-async def start_pane(connection: iterm2.Connection, opened: Opened) -> None:
-    """Send the pane command to the session when its shell is ready."""
+async def start_pane(connection: iterm2.Connection, opened: Opened, command: str) -> None:
+    """Send the command to the session of the pane when its shell is ready."""
     await wait_for_prompt(connection, opened.session.session_id)
-    await opened.session.async_send_text(pane_command(opened.pane) + "\n")
+    await opened.session.async_send_text(command + "\n")
 
 
-def resumes_agent(pane: Pane) -> bool:
-    """Tell if the pane command resumes the agent session of the pane."""
-    return pane.agent is not None and pane_command(pane) == pane.agent.resume
+def resumes_agent(pane: Pane, command: str) -> bool:
+    """Tell if the command resumes the agent session of the pane."""
+    return pane.agent is not None and command == pane.agent.resume
 
 
 async def fill_tab(target: Target, tab: iterm2.Tab, saved: Tab) -> list[Opened]:
@@ -275,8 +275,11 @@ def run_restore(build: Build, tabs: int) -> None:
         app = await iterm2.async_get_app(connection)
         opened = await build(Target(connection, app, await profile_names(connection)))
         console.print(f"Opened {tabs} tabs. Starting {len(opened)} panes…")
-        await asyncio.gather(*(start_pane(connection, item) for item in opened))
-        await report_not_started([item for item in opened if resumes_agent(item.pane)])
+        commands = fresh_pane_commands([item.pane for item in opened])
+        started = (start_pane(connection, item, command) for item, command in zip(opened, commands, strict=True))
+        await asyncio.gather(*started)
+        resumed = [item for item, command in zip(opened, commands, strict=True) if resumes_agent(item.pane, command)]
+        await report_not_started(resumed)
 
     try:
         iterm2.run_until_complete(restore_all)
