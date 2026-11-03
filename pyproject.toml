@@ -28,7 +28,7 @@ classifiers = [
 [project.urls]
 Homepage = "https://github.com/WaYdotNET/ai-tabs"
 Issues = "https://github.com/WaYdotNET/ai-tabs/issues"
-Changelog = "https://github.com/WaYdotNET/ai-tabs/releases"
+Changelog = "https://github.com/WaYdotNET/ai-tabs/blob/main/CHANGELOG.md"
 
 [project.scripts]
 ai-tabs = "ai_tabs.cli:run"

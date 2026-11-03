@@ -153,6 +153,8 @@ uv run typer ai_tabs.cli utils docs --name ai-tabs --title ai-tabs --output docs
 
 The `Release` workflow publishes to PyPI when a tag `vX.Y.Z` arrives on GitHub. It runs the tests, checks that the tag is the version in `pyproject.toml`, builds the wheel and the sdist, then uploads them with PyPI Trusted Publishing. No token is stored in GitHub.
 
+Before a release, move the `[Unreleased]` entries of `CHANGELOG.md` to a new section for the version, with the date. Then:
+
 ```sh
 uv version --bump minor   # or patch, major
 git commit -am "chore: release v$(uv version --short)"
