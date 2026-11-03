@@ -1,5 +1,6 @@
 """The restore screen: the snapshots on the left, the tabs of the selected snapshot on the right."""
 
+import contextlib
 import os
 import subprocess
 import sys
@@ -8,6 +9,8 @@ from dataclasses import dataclass
 from rich.console import Group, RenderableType
 from rich.markdown import Markdown
 from rich.text import Text
+from rich.theme import Theme as RichTheme
+from rich.theme import ThemeStackError
 from textual import work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
@@ -17,7 +20,8 @@ from textual.theme import Theme
 from textual.widgets import Footer, Input, Label, ListItem, ListView, OptionList, Static
 from textual.widgets.option_list import Option
 
-from . import markdown, store
+from . import __version__, markdown, store
+from .about import changelog_text
 from .config import (
     CONFIG_FILE,
     SETTING_HELP,
@@ -50,8 +54,14 @@ KEYS = [
     ("o", "change the settings"),
     ("s", "take a snapshot now"),
     ("t", "switch between the dark and the light theme, and save it in the settings"),
+    ("v", "show the changes of each release"),
     ("q, esc", "quit"),
 ]
+
+
+def brand(colors: Palette) -> Text:
+    """Return the small logo followed by the version, for the top bar."""
+    return logo_compact(colors).append(f"  v{__version__}", style=colors.muted)
 
 
 def textual_theme(colors: Palette) -> Theme:
@@ -208,6 +218,7 @@ class RestoreApp(App[RestoreChoice]):
         Binding("e", "export", "export", show=False),
         Binding("o", "settings", "settings", show=False),
         Binding("t", "switch_theme", "theme", show=False),
+        Binding("v", "changelog", "changelog", show=False),
         Binding("a", "toggle_all", "all", show=False),
         Binding("tab,shift+tab", "switch_panel", "switch panel", show=False, priority=True),
         Binding("escape", "leave", "back", show=False),
@@ -230,7 +241,7 @@ class RestoreApp(App[RestoreChoice]):
 
     def compose(self) -> ComposeResult:
         """Lay out the logo bar, the snapshot list, the search field and the tab list."""
-        yield Static(logo_compact(self.palette), id="brand")
+        yield Static(brand(self.palette), id="brand")
         with Horizontal():
             yield ListView(*self.snapshot_items(), id="snapshots", initial_index=self.current_index())
             with Vertical(id="right"):
@@ -272,9 +283,13 @@ class RestoreApp(App[RestoreChoice]):
         self.query_one("#tabs").focus()
 
     def paint(self) -> None:
-        """Apply the current palette to the theme, the logo bar and the title of the tab panel."""
+        """Apply the current palette to the theme, the Markdown code, the logo bar and the title of the tab panel."""
         self.theme = self.palette.name
-        self.query_one("#brand", Static).update(logo_compact(self.palette))
+        # The default Rich style of inline code is black, which does not fit the light theme.
+        with contextlib.suppress(ThemeStackError):
+            self.console.pop_theme()
+        self.console.push_theme(RichTheme({"markdown.code": f"bold {self.palette.cyan}"}))
+        self.query_one("#brand", Static).update(brand(self.palette))
         mode = "" if self.open_tabs else " · dry run: Enter prints the commands"
         self.query_one("#right").border_title = f"Tabs   [{self.palette.green}]●[/] still runs{mode}"
 
@@ -378,6 +393,10 @@ class RestoreApp(App[RestoreChoice]):
     def action_keys(self) -> None:
         """Show all the keys of the restore screen."""
         self.push_screen(InfoScreen("Keys", Group(logo_compact(self.palette), Text(""), keys_help(self.palette))))
+
+    def action_changelog(self) -> None:
+        """Show the changes of each release."""
+        self.push_screen(InfoScreen(f"ai-tabs v{__version__}", Markdown(changelog_text())))
 
     async def action_pin(self) -> None:
         """Pin the current snapshot, or remove its pin."""

@@ -11,9 +11,11 @@ from typing import Annotated
 
 import iterm2
 import typer
+from rich.markdown import Markdown
 from rich.table import Table
 
 from . import markdown, store
+from .about import changelog_text, version_text
 from .config import (
     CONFIG_FILE,
     LAUNCHCTL,
@@ -116,14 +118,31 @@ def choice_from_screen(start_id: str | None, open_tabs: bool) -> RestoreChoice:
     return choice
 
 
+def print_version(value: bool) -> None:
+    """Print the version and stop, when `--version` is given."""
+    if value:
+        print(version_text())
+        raise typer.Exit()
+
+
 @app.callback(invoke_without_command=True)
-def main(context: typer.Context) -> None:
+def main(
+    context: typer.Context,
+    version: Annotated[bool, typer.Option("--version", "-V", callback=print_version, is_eager=True,
+                                          help="Show the version and stop.")] = False,
+) -> None:
     """Move the data from the macOS data folder to the default folder. Without a command, open the restore screen."""
     moved_from = move_legacy_data()
     if moved_from is not None:
         print(f"Moved the ai-tabs data from {moved_from} to {settings().data_dir}.", file=sys.stderr)
     if context.invoked_subcommand is None:
         run_choice(choice_from_screen(None, open_tabs=True))
+
+
+@app.command()
+def changelog() -> None:
+    """Show the changes of each release, newest first."""
+    console.print(Markdown(changelog_text()))
 
 
 @app.command()

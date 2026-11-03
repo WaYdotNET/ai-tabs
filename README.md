@@ -68,6 +68,7 @@ Run `ai-tabs` without a command to open the restore screen. In iTerm2, the logo 
 | `o` | Change the settings |
 | `s` | Take a snapshot now |
 | `t` | Switch between the dark and the light theme, and save it in the settings |
+| `v` | Show the changes of each release |
 | `?` | Show all the keys |
 | `q`, `esc` | Quit |
 
@@ -88,6 +89,7 @@ The restore opens new windows with the saved order, frame, titles, colors, split
 | `ai-tabs export [ID …] [--to DIR]` | Write snapshots as Markdown files |
 | `ai-tabs backup` | Write a backup of the database now |
 | `ai-tabs config`, `config set KEY VALUE`, `config unset KEY` | Show or change the settings |
+| `ai-tabs changelog`, `ai-tabs --version` | Show the changes of each release, or the version |
 | `ai-tabs install`, `ai-tabs uninstall` | Load or remove the launchd agent |
 
 A snapshot ID is `YYYY-MM-DD/HH-MM-SS`. `latest` is the newest snapshot. See [docs/cli.md](https://github.com/WaYdotNET/ai-tabs/blob/main/docs/cli.md) for all the options.

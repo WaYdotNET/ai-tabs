@@ -17,10 +17,12 @@ $ ai-tabs [OPTIONS] COMMAND [ARGS]...
 
 **Options**:
 
+* `-V, --version`: Show the version and stop.
 * `--help`: Show this message and exit.
 
 **Commands**:
 
+* `changelog`: Show the changes of each release, newest...
 * `snapshot`: Save the open tabs and agent sessions.
 * `restore`: Open the saved tabs again and resume the...
 * `show`: Show the tabs and agent sessions that a...
@@ -32,6 +34,20 @@ $ ai-tabs [OPTIONS] COMMAND [ARGS]...
 * `install`: Load the launchd agent that takes the...
 * `uninstall`: Stop and remove the launchd agent.
 * `config`: Show or change the settings in...
+
+## `ai-tabs changelog`
+
+Show the changes of each release, newest first.
+
+**Usage**:
+
+```console
+$ ai-tabs changelog [OPTIONS]
+```
+
+**Options**:
+
+* `--help`: Show this message and exit.
 
 ## `ai-tabs snapshot`
 
