@@ -1,0 +1,636 @@
+{
+  "schema_version": "ai-attribution/1.2.0",
+  "base_commit_sha": "77889eb693fd1ce9229048c51a5898cd8e693e4c",
+  "sessions": {
+    "01a19c67-8b23-7647-94a4-129e31e15632": {
+      "agent": {
+        "tool": "omp",
+        "model": "anthropic/claude-opus-5-5"
+      },
+      "human_author": "Carlo Bertini \u003cwaydotnet@gmail.com\u003e"
+    },
+    "01a1a0b0-ee9e-7453-8786-500ee6b3757f": {
+      "agent": {
+        "tool": "omp",
+        "model": "anthropic/claude-opus-5-5"
+      },
+      "human_author": "Carlo Bertini \u003cwaydotnet@gmail.com\u003e"
+    },
+    "01a1a0b0-ee9e-7454-8828-dbecec44dd31": {
+      "agent": {
+        "tool": "omp",
+        "model": "anthropic/claude-opus-5-5"
+      },
+      "human_author": "Carlo Bertini \u003cwaydotnet@gmail.com\u003e"
+    },
+    "01a1a0b0-ee9e-7455-b059-80bfe702cc39": {
+      "agent": {
+        "tool": "omp",
+        "model": "anthropic/claude-opus-5-5"
+      },
+      "human_author": "Carlo Bertini \u003cwaydotnet@gmail.com\u003e"
+    },
+    "01a1a0b0-ee9e-7456-9efd-800dc3b0c7f8": {
+      "agent": {
+        "tool": "omp",
+        "model": "anthropic/claude-opus-5-5"
+      },
+      "human_author": "Carlo Bertini \u003cwaydotnet@gmail.com\u003e"
+    },
+    "01a1a0b0-ee9e-7457-8996-3e62977beb53": {
+      "agent": {
+        "tool": "omp",
+        "model": "anthropic/claude-opus-5-5"
+      },
+      "human_author": "Carlo Bertini \u003cwaydotnet@gmail.com\u003e"
+    }
+  },
+  "files": {
+    "CHANGELOG.md": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::395a21eaaf31": [
+        "7-8"
+      ],
+      "01a19c67-8b23-7647-94a4-129e31e15632::760a53ba2755": [
+        "9-20"
+      ]
+    },
+    "README.md": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::12436bbd3bae": [
+        39,
+        43,
+        "46-47",
+        "93-96",
+        "99-101",
+        125,
+        138,
+        140,
+        145
+      ]
+    },
+    "src/ai_tabs/backups.py": {
+      "01a1a0b0-ee9e-7455-b059-80bfe702cc39::7e92cb58d893": [
+        "1-134"
+      ]
+    },
+    "src/ai_tabs/cli.py": {
+      "01a1a0b0-ee9e-7453-8786-500ee6b3757f::1e3995e1cce3": [
+        484
+      ],
+      "01a1a0b0-ee9e-7453-8786-500ee6b3757f::b0faac462d70": [
+        38,
+        483,
+        "485-491",
+        "493-496"
+      ],
+      "01a1a0b0-ee9e-7454-8828-dbecec44dd31::27ddffcc1331": [
+        "27-28"
+      ],
+      "01a1a0b0-ee9e-7454-8828-dbecec44dd31::6c3bf7f924ba": [
+        48
+      ],
+      "01a1a0b0-ee9e-7454-8828-dbecec44dd31::a4e767c46121": [
+        "358-359",
+        "366-393",
+        "396-398",
+        405,
+        409,
+        "426-428",
+        "431-447",
+        450,
+        "452-454",
+        456,
+        "458-463",
+        "468-482"
+      ],
+      "01a1a0b0-ee9e-7454-8828-dbecec44dd31::a7efab6483ff": [
+        "55-56"
+      ],
+      "01a1a0b0-ee9e-7454-8828-dbecec44dd31::b0eecdb3cd8f": [
+        7,
+        492
+      ],
+      "01a1a0b0-ee9e-7455-b059-80bfe702cc39::d4ef59f1a36c": [
+        8,
+        "283-300",
+        "303-308",
+        "314-319",
+        "321-327",
+        330,
+        "332-334",
+        "339-340"
+      ],
+      "01a1a0b0-ee9e-7455-b059-80bfe702cc39::f0953a7479cd": [
+        "301-302",
+        "309-313",
+        "335-338"
+      ],
+      "01a1a0b0-ee9e-7456-9efd-800dc3b0c7f8::25ee054a7599": [
+        17,
+        "39-40"
+      ],
+      "01a1a0b0-ee9e-7456-9efd-800dc3b0c7f8::27fb06d9ffab": [
+        538
+      ],
+      "01a1a0b0-ee9e-7456-9efd-800dc3b0c7f8::b92120ecdcb2": [
+        586,
+        616,
+        624,
+        643
+      ],
+      "01a1a0b0-ee9e-7456-9efd-800dc3b0c7f8::f1393eeab99c": [
+        "539-585",
+        "587-615",
+        "617-623",
+        "625-642",
+        "644-649"
+      ],
+      "01a1a0b0-ee9e-7457-8996-3e62977beb53::3558b0bc04fc": [
+        265
+      ],
+      "01a1a0b0-ee9e-7457-8996-3e62977beb53::35eb426e4877": [
+        45,
+        245,
+        "247-255",
+        "259-263",
+        "266-280"
+      ],
+      "01a1a0b0-ee9e-7457-8996-3e62977beb53::37a09a260feb": [
+        246,
+        "256-258",
+        264
+      ]
+    },
+    "src/ai_tabs/config.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::3f5d34209e36": [
+        "28-29"
+      ],
+      "01a1a0b0-ee9e-7454-8828-dbecec44dd31::bfe6cc64e50e": [
+        49,
+        61,
+        78,
+        113
+      ]
+    },
+    "src/ai_tabs/doctor.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::ba295cb20def": [
+        "309-315",
+        322
+      ],
+      "01a1a0b0-ee9e-7453-8786-500ee6b3757f::03569a60ecb8": [
+        120
+      ],
+      "01a1a0b0-ee9e-7453-8786-500ee6b3757f::926cd6aeaaba": [
+        "121-122",
+        "124-134",
+        148
+      ],
+      "01a1a0b0-ee9e-7453-8786-500ee6b3757f::a0e4264b717a": [
+        "185-186"
+      ],
+      "01a1a0b0-ee9e-7453-8786-500ee6b3757f::e3cf9b924a9a": [
+        "1-119",
+        123,
+        "135-147",
+        "149-184",
+        "187-308",
+        "316-321",
+        "323-346"
+      ]
+    },
+    "src/ai_tabs/layouts.py": {
+      "01a1a0b0-ee9e-7456-9efd-800dc3b0c7f8::aa662f61272e": [
+        "1-98"
+      ]
+    },
+    "src/ai_tabs/sessions.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::aaa443f9a9ea": [
+        "28-30",
+        "167-171",
+        "176-179"
+      ],
+      "01a19c67-8b23-7647-94a4-129e31e15632::ce4828effad4": [
+        181
+      ],
+      "01a1a0b0-ee9e-7457-8996-3e62977beb53::64f257398f02": [
+        10
+      ],
+      "01a1a0b0-ee9e-7457-8996-3e62977beb53::6b036468e9d9": [
+        34,
+        118,
+        "120-121",
+        "123-129",
+        131,
+        134
+      ],
+      "01a1a0b0-ee9e-7457-8996-3e62977beb53::b98222d41f4a": [
+        11
+      ],
+      "01a1a0b0-ee9e-7457-8996-3e62977beb53::e8fe5fabf3ae": [
+        "1-9",
+        "12-27",
+        "31-33",
+        "35-117",
+        119,
+        122,
+        130,
+        "132-133",
+        "135-166",
+        "172-173",
+        180,
+        "183-209"
+      ],
+      "01a1a0b0-ee9e-7457-8996-3e62977beb53::f6b23d85b069": [
+        "174-175",
+        182
+      ]
+    },
+    "src/ai_tabs/snapshot.py": {
+      "01a1a0b0-ee9e-7454-8828-dbecec44dd31::4d2d1fe5c992": [
+        94
+      ],
+      "01a1a0b0-ee9e-7454-8828-dbecec44dd31::b8ceed717986": [
+        "82-86",
+        89
+      ],
+      "01a1a0b0-ee9e-7454-8828-dbecec44dd31::eb80fdd4e842": [
+        3,
+        "5-6",
+        "51-61",
+        "63-69"
+      ]
+    },
+    "src/ai_tabs/watch.py": {
+      "01a1a0b0-ee9e-7454-8828-dbecec44dd31::1cd8e92824c2": [
+        "1-85",
+        "88-89",
+        "91-95",
+        "98-112"
+      ],
+      "01a1a0b0-ee9e-7454-8828-dbecec44dd31::2da4e2f67876": [
+        "86-87",
+        "96-97"
+      ],
+      "01a1a0b0-ee9e-7454-8828-dbecec44dd31::86455e06a617": [
+        90
+      ]
+    },
+    "tests/test_backups.py": {
+      "01a1a0b0-ee9e-7455-b059-80bfe702cc39::8ba150bd7622": [
+        "1-2",
+        "5-26",
+        "28-66",
+        "68-69",
+        71,
+        "73-87",
+        "89-130"
+      ]
+    },
+    "tests/test_doctor.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::5e898bd2d6ff": [
+        14,
+        "252-255",
+        258
+      ],
+      "01a19c67-8b23-7647-94a4-129e31e15632::b8906ec97956": [
+        "256-257",
+        "259-266"
+      ],
+      "01a1a0b0-ee9e-7453-8786-500ee6b3757f::97b644911918": [
+        "1-13",
+        "15-149",
+        "164-251",
+        "267-293",
+        "296-306",
+        "308-427"
+      ],
+      "01a1a0b0-ee9e-7453-8786-500ee6b3757f::a0e4264b717a": [
+        "294-295",
+        307
+      ],
+      "01a1a0b0-ee9e-7453-8786-500ee6b3757f::f06feb8f8a5c": [
+        "150-157",
+        163
+      ],
+      "01a1a0b0-ee9e-7453-8786-500ee6b3757f::f76cf85fade1": [
+        "158-162"
+      ]
+    },
+    "tests/test_layouts.py": {
+      "01a1a0b0-ee9e-7456-9efd-800dc3b0c7f8::7269a2393815": [
+        "1-223"
+      ]
+    },
+    "tests/test_sessions.py": {
+      "01a1a0b0-ee9e-7457-8996-3e62977beb53::2706f31c87e4": [
+        "1-107",
+        "112-118",
+        "129-137",
+        "150-266"
+      ],
+      "01a1a0b0-ee9e-7457-8996-3e62977beb53::3558b0bc04fc": [
+        "108-111"
+      ],
+      "01a1a0b0-ee9e-7457-8996-3e62977beb53::a20de13f21ad": [
+        "138-149"
+      ],
+      "01a1a0b0-ee9e-7457-8996-3e62977beb53::a4bf8c592d8c": [
+        "119-128"
+      ]
+    },
+    "tests/test_watch.py": {
+      "01a1a0b0-ee9e-7454-8828-dbecec44dd31::2d20ad798f19": [
+        "1-127",
+        "130-154"
+      ],
+      "01a1a0b0-ee9e-7454-8828-dbecec44dd31::57c1e19c8d19": [
+        "128-129"
+      ]
+    }
+  },
+  "deletions": {
+    "README.md": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::12436bbd3bae": {
+        "total": 6
+      }
+    },
+    "src/ai_tabs/cli.py": {
+      "01a1a0b0-ee9e-7454-8828-dbecec44dd31::6c3bf7f924ba": {
+        "total": 1
+      },
+      "01a1a0b0-ee9e-7454-8828-dbecec44dd31::a4e767c46121": {
+        "total": 25
+      },
+      "01a1a0b0-ee9e-7454-8828-dbecec44dd31::a7efab6483ff": {
+        "total": 4
+      },
+      "01a1a0b0-ee9e-7454-8828-dbecec44dd31::b0eecdb3cd8f": {
+        "total": 2
+      },
+      "01a1a0b0-ee9e-7455-b059-80bfe702cc39::d4ef59f1a36c": {
+        "total": 6
+      },
+      "01a1a0b0-ee9e-7455-b059-80bfe702cc39::f0953a7479cd": {
+        "total": 5
+      },
+      "01a1a0b0-ee9e-7456-9efd-800dc3b0c7f8::25ee054a7599": {
+        "total": 3
+      },
+      "01a1a0b0-ee9e-7456-9efd-800dc3b0c7f8::b92120ecdcb2": {
+        "total": 4
+      },
+      "01a1a0b0-ee9e-7457-8996-3e62977beb53::3558b0bc04fc": {
+        "total": 1
+      },
+      "01a1a0b0-ee9e-7457-8996-3e62977beb53::37a09a260feb": {
+        "total": 2
+      },
+      "01a1a0b0-ee9e-7457-8996-3e62977beb53::7d518873f2c8": {
+        "total": 1
+      }
+    },
+    "src/ai_tabs/doctor.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::ba295cb20def": {
+        "total": 1
+      },
+      "01a1a0b0-ee9e-7453-8786-500ee6b3757f::926cd6aeaaba": {
+        "total": 1
+      },
+      "01a1a0b0-ee9e-7453-8786-500ee6b3757f::a0e4264b717a": {
+        "total": 1
+      }
+    },
+    "src/ai_tabs/sessions.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::8b96c361d41f": {
+        "total": 3
+      },
+      "01a19c67-8b23-7647-94a4-129e31e15632::aaa443f9a9ea": {
+        "total": 4
+      },
+      "01a19c67-8b23-7647-94a4-129e31e15632::ce4828effad4": {
+        "total": 2
+      },
+      "01a1a0b0-ee9e-7457-8996-3e62977beb53::64f257398f02": {
+        "total": 2
+      },
+      "01a1a0b0-ee9e-7457-8996-3e62977beb53::6b036468e9d9": {
+        "total": 2
+      },
+      "01a1a0b0-ee9e-7457-8996-3e62977beb53::b98222d41f4a": {
+        "total": 2
+      },
+      "01a1a0b0-ee9e-7457-8996-3e62977beb53::f6b23d85b069": {
+        "total": 3
+      }
+    },
+    "src/ai_tabs/snapshot.py": {
+      "01a1a0b0-ee9e-7454-8828-dbecec44dd31::4d2d1fe5c992": {
+        "total": 1
+      },
+      "01a1a0b0-ee9e-7454-8828-dbecec44dd31::b8ceed717986": {
+        "total": 4
+      },
+      "01a1a0b0-ee9e-7454-8828-dbecec44dd31::eb80fdd4e842": {
+        "total": 1
+      }
+    },
+    "src/ai_tabs/watch.py": {
+      "01a1a0b0-ee9e-7454-8828-dbecec44dd31::2da4e2f67876": {
+        "total": 2
+      },
+      "01a1a0b0-ee9e-7454-8828-dbecec44dd31::86455e06a617": {
+        "total": 1
+      }
+    },
+    "tests/test_doctor.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::5e898bd2d6ff": {
+        "total": 4
+      },
+      "01a19c67-8b23-7647-94a4-129e31e15632::b8906ec97956": {
+        "total": 2
+      },
+      "01a1a0b0-ee9e-7453-8786-500ee6b3757f::a0e4264b717a": {
+        "total": 2
+      },
+      "01a1a0b0-ee9e-7453-8786-500ee6b3757f::f76cf85fade1": {
+        "total": 5
+      }
+    },
+    "tests/test_sessions.py": {
+      "01a1a0b0-ee9e-7457-8996-3e62977beb53::3558b0bc04fc": {
+        "total": 2
+      }
+    },
+    "tests/test_watch.py": {
+      "01a1a0b0-ee9e-7454-8828-dbecec44dd31::57c1e19c8d19": {
+        "total": 1
+      }
+    }
+  },
+  "turns": {
+    "01a19c67-8b23-7647-94a4-129e31e15632::12436bbd3bae": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::395a21eaaf31": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::3f5d34209e36": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::5e898bd2d6ff": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::760a53ba2755": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::8b96c361d41f": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::aaa443f9a9ea": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::b8906ec97956": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::ba295cb20def": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::ce4828effad4": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7453-8786-500ee6b3757f::03569a60ecb8": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7453-8786-500ee6b3757f::1e3995e1cce3": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7453-8786-500ee6b3757f::926cd6aeaaba": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7453-8786-500ee6b3757f::97b644911918": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7453-8786-500ee6b3757f::a0e4264b717a": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7453-8786-500ee6b3757f::b0faac462d70": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7453-8786-500ee6b3757f::e3cf9b924a9a": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7453-8786-500ee6b3757f::f06feb8f8a5c": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7453-8786-500ee6b3757f::f76cf85fade1": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7454-8828-dbecec44dd31::1cd8e92824c2": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7454-8828-dbecec44dd31::27ddffcc1331": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7454-8828-dbecec44dd31::2d20ad798f19": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7454-8828-dbecec44dd31::2da4e2f67876": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7454-8828-dbecec44dd31::4d2d1fe5c992": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7454-8828-dbecec44dd31::57c1e19c8d19": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7454-8828-dbecec44dd31::6c3bf7f924ba": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7454-8828-dbecec44dd31::86455e06a617": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7454-8828-dbecec44dd31::a4e767c46121": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7454-8828-dbecec44dd31::a7efab6483ff": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7454-8828-dbecec44dd31::b0eecdb3cd8f": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7454-8828-dbecec44dd31::b8ceed717986": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7454-8828-dbecec44dd31::bfe6cc64e50e": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7454-8828-dbecec44dd31::eb80fdd4e842": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7455-b059-80bfe702cc39::7e92cb58d893": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7455-b059-80bfe702cc39::8ba150bd7622": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7455-b059-80bfe702cc39::d4ef59f1a36c": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7455-b059-80bfe702cc39::f0953a7479cd": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7456-9efd-800dc3b0c7f8::25ee054a7599": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7456-9efd-800dc3b0c7f8::27fb06d9ffab": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7456-9efd-800dc3b0c7f8::7269a2393815": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7456-9efd-800dc3b0c7f8::aa662f61272e": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7456-9efd-800dc3b0c7f8::b92120ecdcb2": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7456-9efd-800dc3b0c7f8::f1393eeab99c": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7457-8996-3e62977beb53::2706f31c87e4": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7457-8996-3e62977beb53::3558b0bc04fc": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7457-8996-3e62977beb53::35eb426e4877": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7457-8996-3e62977beb53::37a09a260feb": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7457-8996-3e62977beb53::64f257398f02": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7457-8996-3e62977beb53::6b036468e9d9": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7457-8996-3e62977beb53::7d518873f2c8": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7457-8996-3e62977beb53::a20de13f21ad": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7457-8996-3e62977beb53::a4bf8c592d8c": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7457-8996-3e62977beb53::b98222d41f4a": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7457-8996-3e62977beb53::e8fe5fabf3ae": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1a0b0-ee9e-7457-8996-3e62977beb53::f6b23d85b069": {
+      "model": "anthropic/claude-opus-5-5"
+    }
+  }
+}
