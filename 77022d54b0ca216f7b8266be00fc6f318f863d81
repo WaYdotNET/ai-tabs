@@ -1,0 +1,87 @@
+{
+  "schema_version": "ai-attribution/1.2.0",
+  "base_commit_sha": "0205073d9570481a5f1b33f68bb897db2fb72fa0",
+  "sessions": {
+    "01a19c67-8b23-7647-94a4-129e31e15632": {
+      "agent": {
+        "tool": "omp",
+        "model": "anthropic/claude-opus-5-5"
+      },
+      "human_author": "Carlo Bertini \u003cwaydotnet@gmail.com\u003e"
+    }
+  },
+  "files": {
+    ".github/workflows/ci.yml": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::98c317a54cb4": [
+        "1-23"
+      ]
+    },
+    ".github/workflows/release.yml": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::7b27f60c905a": [
+        33
+      ],
+      "01a19c67-8b23-7647-94a4-129e31e15632::88f6943e433b": [
+        32
+      ],
+      "01a19c67-8b23-7647-94a4-129e31e15632::c4673998b7fe": [
+        "1-31",
+        "34-53"
+      ]
+    },
+    "LICENSE": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::6d4681767589": [
+        "1-21"
+      ]
+    },
+    "README.md": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::2b2401042785": [
+        33,
+        "151-165"
+      ]
+    },
+    "pyproject.toml": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::49991d6246ba": [
+        "6-8",
+        "27-31"
+      ]
+    }
+  },
+  "deletions": {
+    ".github/workflows/release.yml": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::7b27f60c905a": {
+        "total": 1
+      },
+      "01a19c67-8b23-7647-94a4-129e31e15632::88f6943e433b": {
+        "total": 1
+      }
+    },
+    "README.md": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::2b2401042785": {
+        "total": 1
+      }
+    }
+  },
+  "turns": {
+    "01a19c67-8b23-7647-94a4-129e31e15632::2b2401042785": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::49991d6246ba": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::6d4681767589": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::7b27f60c905a": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::88f6943e433b": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::98c317a54cb4": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::c4673998b7fe": {
+      "model": "anthropic/claude-opus-5-5"
+    }
+  }
+}
