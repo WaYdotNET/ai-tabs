@@ -90,7 +90,7 @@ The restore opens new windows with the saved order, frame, titles, colors, split
 | `ai-tabs config`, `config set KEY VALUE`, `config unset KEY` | Show or change the settings |
 | `ai-tabs install`, `ai-tabs uninstall` | Load or remove the launchd agent |
 
-A snapshot ID is `YYYY-MM-DD/HH-MM-SS`. `latest` is the newest snapshot. See [docs/cli.md](docs/cli.md) for all the options.
+A snapshot ID is `YYYY-MM-DD/HH-MM-SS`. `latest` is the newest snapshot. See [docs/cli.md](https://github.com/WaYdotNET/ai-tabs/blob/main/docs/cli.md) for all the options.
 
 ## Settings
 
@@ -164,4 +164,4 @@ git push origin main --tags
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+MIT. See [LICENSE](https://github.com/WaYdotNET/ai-tabs/blob/main/LICENSE).

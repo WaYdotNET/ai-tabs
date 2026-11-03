@@ -4,6 +4,10 @@ All the changes to ai-tabs that users can see. The format follows [Keep a Change
 
 ## [Unreleased]
 
+### Fixed
+
+- The links to `docs/cli.md` and `LICENSE` work on the PyPI page.
+
 ## [0.1.1] - 2026-11-03
 
 ### Fixed
