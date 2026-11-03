@@ -1,0 +1,109 @@
+{
+  "schema_version": "ai-attribution/1.2.0",
+  "base_commit_sha": "ea3dfdf8864ad9fdc7b03e719dfd34fe48235793",
+  "sessions": {
+    "01a19c67-8b23-7647-94a4-129e31e15632": {
+      "agent": {
+        "tool": "omp",
+        "model": "anthropic/claude-opus-5-5"
+      },
+      "human_author": "Carlo Bertini \u003cwaydotnet@gmail.com\u003e"
+    }
+  },
+  "files": {
+    "CHANGELOG.md": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::2556f6660496": [
+        "7-15",
+        "68-69"
+      ]
+    },
+    "src/ai_tabs/display.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::ad274a355e6c": [
+        "3-7",
+        9,
+        "18-34"
+      ]
+    },
+    "src/ai_tabs/plan.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::164fb9455d14": [
+        "100-106",
+        109,
+        "111-113",
+        "115-124"
+      ],
+      "01a19c67-8b23-7647-94a4-129e31e15632::d16b8c26cf6c": [
+        5,
+        8,
+        14
+      ]
+    },
+    "src/ai_tabs/screen.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::0963aa77b7e3": [
+        "37-38",
+        "49-51"
+      ]
+    },
+    "src/ai_tabs/tui.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::0963aa77b7e3": [
+        11
+      ],
+      "01a19c67-8b23-7647-94a4-129e31e15632::26a1bd312cc2": [
+        42,
+        "80-84",
+        "86-87",
+        177,
+        386
+      ]
+    }
+  },
+  "deletions": {
+    "CHANGELOG.md": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::2556f6660496": {
+        "total": 1
+      }
+    },
+    "src/ai_tabs/display.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::ad274a355e6c": {
+        "total": 1
+      }
+    },
+    "src/ai_tabs/plan.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::164fb9455d14": {
+        "total": 5
+      },
+      "01a19c67-8b23-7647-94a4-129e31e15632::d16b8c26cf6c": {
+        "total": 1
+      }
+    },
+    "src/ai_tabs/screen.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::0963aa77b7e3": {
+        "total": 4
+      }
+    },
+    "src/ai_tabs/tui.py": {
+      "01a19c67-8b23-7647-94a4-129e31e15632::26a1bd312cc2": {
+        "total": 10
+      }
+    }
+  },
+  "turns": {
+    "01a19c67-8b23-7647-94a4-129e31e15632::0963aa77b7e3": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::164fb9455d14": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::2556f6660496": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::26a1bd312cc2": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::ad274a355e6c": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a19c67-8b23-7647-94a4-129e31e15632::d16b8c26cf6c": {
+      "model": "anthropic/claude-opus-5-5"
+    }
+  }
+}
