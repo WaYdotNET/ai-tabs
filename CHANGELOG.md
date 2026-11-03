@@ -4,6 +4,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-11-03
+
+### Changed
+
+- The `c` key shows the ai-tabs commands, as `ai-tabs --help`. The `d` key shows the commands that restore runs.
+- `ai-tabs changelog` and the `v` key show one line per change, with the version, the date and the kind.
+
 ## [0.3.1] - 2026-11-03
 
 ### Fixed
@@ -65,7 +72,8 @@ First release.
 - Markdown export, daily backups, `config` command.
 - Dark and light theme.
 
-[Unreleased]: https://github.com/WaYdotNET/ai-tabs/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/WaYdotNET/ai-tabs/compare/v0.3.2...HEAD
+[0.3.2]: https://github.com/WaYdotNET/ai-tabs/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/WaYdotNET/ai-tabs/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/WaYdotNET/ai-tabs/compare/v0.2.2...v0.3.0
 [0.2.2]: https://github.com/WaYdotNET/ai-tabs/compare/v0.2.1...v0.2.2

@@ -64,14 +64,15 @@ Run `ai-tabs` without a command to open the restore screen. In iTerm2, the logo 
 | `a` | Select all the visible tabs, or none |
 | `/` | Search tabs, sessions and folders. `esc` leaves the search |
 | `enter` | Restore the selected tabs. In iTerm2, it asks first: new windows, or new tabs in this window |
-| `c` | Show the commands that restore runs |
+| `c` | Show the ai-tabs commands, as `ai-tabs --help` |
+| `d` | Dry run: show the commands that restore runs for the selected tabs |
 | `h` | Show the changes that the snapshot records |
 | `p` | Pin the snapshot, or remove its pin |
 | `e` | Export the snapshot as Markdown to `export_dir` |
 | `o` | Change the settings |
 | `s` | Take a snapshot now |
 | `t` | Switch between the dark and the light theme, and save it in the settings |
-| `v` | Show the changes of each release |
+| `v` | Show the releases and their changes, one line per change |
 | `?` | Show all the keys |
 | `q`, `esc` | Quit |
 
