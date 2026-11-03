@@ -135,19 +135,38 @@ def claude_agent(pid: int) -> Agent | None:
     return Agent("claude", pid, cwd, session_id, info.get("name", ""), resume, argv)
 
 
-def omp_session_file(pid: int) -> Path | None:
+OMP_SESSION_RE = re.compile(re.escape(str(OMP_SESSION_DIR)) + r"/[^/]+/[^/]+\.jsonl$")
+
+
+def omp_open_session_file(pid: int) -> Path | None:
     """Return the main session file that the omp process holds open."""
-    session_re = re.compile(re.escape(str(OMP_SESSION_DIR)) + r"/[^/]+/[^/]+\.jsonl$")
     for line in run(LSOF, "-p", str(pid), "-Fn").splitlines():
         path = line[1:]
-        if line.startswith("n") and session_re.match(path):
+        if line.startswith("n") and OMP_SESSION_RE.match(path):
             return Path(path)
     return None
 
 
+def omp_resumed_session_file(argv: list[str]) -> Path | None:
+    """Return the session file of the `--resume` or `-r` flag, when the flag names an existing session file."""
+    values = [values for name, values in kept_flags(argv, {"--resume": VALUE, "-r": VALUE}) if values]
+    path = values[-1][0] if values else ""
+    return Path(path) if OMP_SESSION_RE.match(path) and Path(path).is_file() else None
+
+
+def omp_session_file(pid: int, argv: list[str]) -> Path | None:
+    """Return the session file of the omp process: the file that it holds open, else the file of `--resume`.
+
+    omp holds the session file open only while it writes to it. A resumed session without a new
+    message has no open file.
+    """
+    return omp_open_session_file(pid) or omp_resumed_session_file(argv)
+
+
 def omp_agent(pid: int) -> Agent | None:
-    """Read the session of an omp process from its open session file."""
-    session_file = omp_session_file(pid)
+    """Read the session of an omp process from its session file."""
+    argv = redact_secrets(process_argv(pid))
+    session_file = omp_session_file(pid, argv)
     if session_file is None:
         return None
     with session_file.open() as handle:
@@ -156,7 +175,6 @@ def omp_agent(pid: int) -> Agent | None:
     session = headers.get("session", {})
     cwd = session.get("cwd", "")
     title = headers.get("title", {}).get("title", "")
-    argv = redact_secrets(process_argv(pid))
     resume = with_flags(f"cd {shlex.quote(cwd)} && omp --resume {shlex.quote(str(session_file))}", omp_flags(argv))
     return Agent("omp", pid, cwd, session.get("id", ""), title, resume, argv)
 

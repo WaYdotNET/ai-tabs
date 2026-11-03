@@ -1,6 +1,7 @@
 """Tests for the command line capture and the launch flags that a resumed session keeps."""
 
 import json
+import re
 
 from ai_tabs import agents
 
@@ -89,13 +90,36 @@ def test_omp_agent_resume_keeps_flags_and_stores_redacted_argv(tmp_path, monkeyp
     session_file = tmp_path / "session.jsonl"
     session_file.write_text(json.dumps({"type": "session", "id": "s1", "cwd": "/work"}) + "\n"
                             + json.dumps({"type": "title", "title": "t"}) + "\n")
-    monkeypatch.setattr(agents, "omp_session_file", lambda pid: session_file)
+    monkeypatch.setattr(agents, "omp_session_file", lambda pid, argv: session_file)
     monkeypatch.setattr(agents, "run", lambda *command: "omp --model=opus --api-key=sk --auto-approve go")
 
     agent = agents.omp_agent(7)
 
     assert agent.resume == f"cd /work && omp --resume {session_file} --model=opus --auto-approve"
     assert agent.argv == ["omp", "--model=opus", "--api-key=***", "--auto-approve", "go"]
+
+
+def test_an_idle_resumed_omp_session_is_found_from_its_resume_flag(tmp_path, monkeypatch):
+    session_file = tmp_path / "-work/2026-11-02_s1.jsonl"
+    session_file.parent.mkdir()
+    session_file.write_text("{}")
+    monkeypatch.setattr(agents, "OMP_SESSION_RE", re.compile(re.escape(str(tmp_path)) + r"/[^/]+/[^/]+\.jsonl$"))
+    monkeypatch.setattr(agents, "run", lambda *command: "")
+
+    found = agents.omp_session_file(7, ["omp", "--resume", str(session_file), "--model=opus"])
+
+    assert found == session_file
+
+
+def test_a_resume_flag_outside_the_session_folder_is_ignored(tmp_path, monkeypatch):
+    elsewhere = tmp_path / "notes.jsonl"
+    elsewhere.write_text("{}")
+    monkeypatch.setattr(agents, "run", lambda *command: "")
+
+    found = agents.omp_session_file(7, ["omp", "--resume", str(elsewhere)])
+
+    assert found is None
+
 
 
 def test_claude_agent_resume_keeps_flags(tmp_path, monkeypatch):
