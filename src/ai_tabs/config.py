@@ -8,6 +8,7 @@ configuration file is `$XDG_CONFIG_HOME/ai-tabs/config.toml`, or `~/.config/ai-t
 
 import json
 import os
+import shutil
 import tomllib
 from dataclasses import dataclass
 from functools import cache
@@ -15,7 +16,8 @@ from pathlib import Path
 
 HOME = Path.home()
 CONFIG_FILE = Path(os.environ.get("XDG_CONFIG_HOME") or HOME / ".config") / "ai-tabs/config.toml"
-DEFAULT_DATA_DIR = HOME / "Library/Application Support/ai-tabs"
+DEFAULT_DATA_DIR = Path(os.environ.get("XDG_DATA_HOME") or HOME / ".local/share") / "ai-tabs"
+LEGACY_DATA_DIR = HOME / "Library/Application Support/ai-tabs"
 DATA_DIR_ENV = "AI_TABS_DIR"
 
 CLAUDE_PID_DIR = HOME / ".claude/sessions"
@@ -104,6 +106,19 @@ def settings() -> Settings:
         splash=bool(config.get("splash", True)),
         theme=str(config.get("theme", "auto")),
     )
+
+
+def move_legacy_data() -> Path | None:
+    """Move the macOS data folder LEGACY_DATA_DIR to DEFAULT_DATA_DIR, and return LEGACY_DATA_DIR.
+
+    Nothing moves, and the result is None, when `data_dir` is not the default, when the old folder
+    does not exist, or when the default folder already exists.
+    """
+    if settings().data_dir != DEFAULT_DATA_DIR or not LEGACY_DATA_DIR.is_dir() or DEFAULT_DATA_DIR.exists():
+        return None
+    DEFAULT_DATA_DIR.parent.mkdir(parents=True, exist_ok=True)
+    shutil.move(LEGACY_DATA_DIR, DEFAULT_DATA_DIR)
+    return LEGACY_DATA_DIR
 
 
 def setting_source(key: str) -> str:

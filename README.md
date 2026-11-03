@@ -103,7 +103,7 @@ A setting takes its value from, in order of priority:
 
 | Setting | Default | Meaning |
 |---|---|---|
-| `data_dir` | `~/Library/Application Support/ai-tabs` | Folder of the database `ai-tabs.sqlite` |
+| `data_dir` | `$XDG_DATA_HOME/ai-tabs`, or `~/.local/share/ai-tabs` | Folder of the database `ai-tabs.sqlite`. If `~/Library/Application Support/ai-tabs` exists, ai-tabs moves it to this folder at the first start |
 | `export_dir` | `data_dir/export` | Folder of the Markdown exports |
 | `export_latest` | `false` | Rewrite `export_dir/latest.md` after every new snapshot |
 | `backup_dir` | `data_dir/backups` | Folder of the daily backups |

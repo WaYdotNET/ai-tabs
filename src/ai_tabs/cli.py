@@ -22,6 +22,7 @@ from .config import (
     LAUNCHD_PLIST,
     SETTING_HELP,
     SETTING_KINDS,
+    move_legacy_data,
     parse_setting,
     setting_source,
     setting_text,
@@ -117,7 +118,10 @@ def choice_from_screen(start_id: str | None, open_tabs: bool) -> RestoreChoice:
 
 @app.callback(invoke_without_command=True)
 def main(context: typer.Context) -> None:
-    """Without a command, open the restore screen."""
+    """Move the data from the macOS data folder to the default folder. Without a command, open the restore screen."""
+    moved_from = move_legacy_data()
+    if moved_from is not None:
+        print(f"Moved the ai-tabs data from {moved_from} to {settings().data_dir}.", file=sys.stderr)
     if context.invoked_subcommand is None:
         run_choice(choice_from_screen(None, open_tabs=True))
 
