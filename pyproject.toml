@@ -1,7 +1,7 @@
 [project]
 name = "ai-tabs"
 version = "0.3.2"
-description = "Save and restore iTerm2 tabs with their omp and Claude Code sessions."
+description = "Save and restore iTerm2 tabs with their omp, Claude Code, opencode and hermes sessions."
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
@@ -15,7 +15,7 @@ dependencies = [
     # opener.py catches its ConnectionClosed. iterm2 already depends on it.
     "websockets",
 ]
-keywords = ["iterm2", "claude-code", "omp", "terminal", "session-restore"]
+keywords = ["iterm2", "claude-code", "omp", "opencode", "hermes", "terminal", "session-restore"]
 classifiers = [
     "Environment :: Console",
     "Environment :: MacOS X",

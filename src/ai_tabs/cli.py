@@ -95,9 +95,16 @@ def check_positions(windows: list[Window], positions: list[str]) -> list[str]:
     return positions
 
 
+def choice_windows(choice: RestoreChoice) -> list[Window]:
+    """Return the windows of the choice, else the windows of its snapshot. Only the first pane of
+    each agent session resumes it."""
+    windows = resolve_snapshot(choice.snapshot_id).windows if choice.windows is None else choice.windows
+    return resolve_duplicates(windows)
+
+
 def run_choice(choice: RestoreChoice) -> None:
     """Open the selected tabs in new windows or in this window, or print their commands."""
-    windows = resolve_duplicates(resolve_snapshot(choice.snapshot_id).windows)
+    windows = choice_windows(choice)
     if not choice.open_tabs:
         print_plan(windows, choice.positions)
         return

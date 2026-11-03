@@ -4,7 +4,7 @@ import contextlib
 import os
 import subprocess
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from rich.console import Group, RenderableType
 from rich.markdown import Markdown
@@ -21,7 +21,7 @@ from textual.theme import Theme
 from textual.widgets import Footer, Input, Label, ListItem, ListView, OptionList, Static
 from textual.widgets.option_list import Option
 
-from . import __version__, markdown, store
+from . import __version__, layouts, markdown, sessions, store
 from .about import changelog_view
 from .config import (
     CONFIG_FILE,
@@ -36,10 +36,16 @@ from .config import (
 )
 from .diff import render_changes
 from .display import snapshot_markup, tab_markup, tab_matches
+from .layouts import Layout
 from .logo import logo_compact
 from .models import Tab, Window, positioned_tabs
 from .palette import DARK, LIGHT, Palette, chosen_palette, other_palette
+from .pickers import LayoutPicker, SessionPicker
 from .plan import default_positions, plan_view, resolve_duplicates
+from .sessions import Session
+
+RECENT_SESSION_DAYS = 7
+NO_LAYOUTS = "There are no layouts. Save one with `ai-tabs layout save NAME`."
 
 KEYS = [
     ("↑ ↓", "move in the list"),
@@ -48,6 +54,8 @@ KEYS = [
     ("a", "select all the visible tabs, or none"),
     ("/", "search tabs, sessions and folders (esc leaves the search)"),
     ("enter", "restore the selected tabs"),
+    ("r", f"resume sessions of the last {RECENT_SESSION_DAYS} days that do not run now (space selects several)"),
+    ("l", "open a named layout"),
     ("c", "show the ai-tabs commands, as ai-tabs --help"),
     ("d", "dry run: show the commands that restore runs for the selected tabs"),
     ("h", "show the changes that the snapshot records"),
@@ -135,12 +143,16 @@ class SettingsScreen(ModalScreen[bool]):
 @dataclass
 class RestoreChoice:
     """What the restore screen returns: the snapshot, its selected tabs, whether to open
-    them (`open_tabs`) or only print their commands, and whether they open in this window (`here`)."""
+    them (`open_tabs`) or only print their commands, and whether they open in this window (`here`).
+
+    When `windows` is set, the tabs come from these windows (a layout or resumed sessions)
+    and not from the snapshot, and `snapshot_id` is empty."""
 
     snapshot_id: str
     positions: list[str]
     open_tabs: bool
     here: bool = False
+    windows: list[Window] | None = None
 
 
 NEW_WINDOWS, THIS_WINDOW = "new", "here"
@@ -211,6 +223,8 @@ class RestoreApp(App[RestoreChoice]):
     BINDINGS = [
         Binding("enter", "finish", "restore", priority=True),
         Binding("space", "toggle_tab", "pick"),
+        Binding("r", "resume", "resume"),
+        Binding("l", "layouts", "layout"),
         Binding("slash", "search", "search"),
         Binding("c", "commands", "commands"),
         Binding("d", "dry_run", "dry run", show=False),
@@ -472,12 +486,47 @@ class RestoreApp(App[RestoreChoice]):
         if not positions:
             self.notify("Select at least one tab (space).", severity="warning")
             return
-        if not self.open_tabs or "ITERM_SESSION_ID" not in os.environ:
-            self.exit(RestoreChoice(self.snapshot_id, positions, self.open_tabs))
-            return
-        self.push_screen(WhereScreen(), lambda here: self.finish_in(positions, here))
+        self.finish_with(RestoreChoice(self.snapshot_id, positions, self.open_tabs))
 
-    def finish_in(self, positions: list[str], here: bool | None) -> None:
-        """Close the screen with the tabs and the chosen place, or stay open when the question is cancelled."""
+    def action_resume(self) -> None:
+        """Show the recent sessions that do not run now, to resume some of them."""
+        listed = sessions.recent_sessions(RECENT_SESSION_DAYS)
+        if not listed:
+            self.notify(f"No session of the last {RECENT_SESSION_DAYS} days to resume.", severity="warning")
+            return
+        self.push_screen(SessionPicker(listed, self.palette), self.after_sessions)
+
+    def after_sessions(self, chosen: list[Session] | None) -> None:
+        """Close the screen with a window that resumes the chosen sessions."""
+        if chosen:
+            self.finish_with_windows([sessions.sessions_window(chosen)])
+
+    def action_layouts(self) -> None:
+        """Show the named layouts, to open one of them."""
+        found = layouts.all_layouts()
+        if not found:
+            self.notify(NO_LAYOUTS, severity="warning")
+            return
+        self.push_screen(LayoutPicker(found), self.after_layout)
+
+    def after_layout(self, layout: Layout | None) -> None:
+        """Close the screen with the windows of the chosen layout."""
+        if layout is not None:
+            self.finish_with_windows(layout.windows)
+
+    def finish_with_windows(self, windows: list[Window]) -> None:
+        """Close the screen with all the tabs of the windows, in place of the snapshot."""
+        positions = [position for position, _ in positioned_tabs(windows)]
+        self.finish_with(RestoreChoice("", positions, self.open_tabs, windows=windows))
+
+    def finish_with(self, choice: RestoreChoice) -> None:
+        """Close the screen with the choice. Inside iTerm2, ask first where the tabs open."""
+        if not choice.open_tabs or "ITERM_SESSION_ID" not in os.environ:
+            self.exit(choice)
+            return
+        self.push_screen(WhereScreen(), lambda here: self.finish_in(choice, here))
+
+    def finish_in(self, choice: RestoreChoice, here: bool | None) -> None:
+        """Close the screen with the choice and the chosen place, or stay open when the question is cancelled."""
         if here is not None:
-            self.exit(RestoreChoice(self.snapshot_id, positions, self.open_tabs, here))
+            self.exit(replace(choice, here=here))

@@ -36,6 +36,9 @@ OSASCRIPT = "/usr/bin/osascript"
 SYSCTL = "/usr/sbin/sysctl"
 LAUNCHCTL = "/bin/launchctl"
 
+OPENCODE_DB = Path(os.environ.get("XDG_DATA_HOME") or HOME / ".local/share") / "opencode/opencode.db"
+HERMES_DB = Path(os.environ.get("HERMES_HOME") or HOME / ".hermes") / "state.db"
+
 SETTING_KINDS = {
     "data_dir": "folder",
     "export_dir": "folder",

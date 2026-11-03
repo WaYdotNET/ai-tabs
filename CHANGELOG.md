@@ -4,6 +4,20 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- opencode and hermes sessions: snapshots, restore and `ai-tabs sessions`.
+- The `r` key resumes recent sessions and the `l` key opens a saved layout, on the restore screen.
+- `scripts/release.py` releases a new version in one command.
+
+### Changed
+
+- The watcher no longer takes a snapshot when a window only moves or changes size.
+
+### Fixed
+
+- A pane that runs a program saves the folder of that program, not the folder of the last prompt.
+
 ## [0.3.2] - 2026-11-03
 
 ### Changed

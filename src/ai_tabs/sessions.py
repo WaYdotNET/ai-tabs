@@ -1,7 +1,8 @@
-"""Find the recent omp and Claude Code sessions that do not run now, and build a window that resumes them."""
+"""Find the recent agent sessions that do not run now, and build a window that resumes them."""
 
 import json
 import shlex
+import sqlite3
 import time
 from dataclasses import dataclass
 from datetime import datetime
@@ -11,7 +12,7 @@ from rich.markup import escape
 from rich.table import Column, Table
 
 from . import agents
-from .config import HOME, OMP_SESSION_DIR
+from .config import HERMES_DB, HOME, OMP_SESSION_DIR, OPENCODE_DB
 from .display import console, short_path
 from .models import Agent, Pane, Tab, Window
 
@@ -25,8 +26,8 @@ TITLE_LENGTH = 60
 SHORT_ID_LENGTH = 8
 SECONDS_PER_DAY = 86400
 NEW_WINDOW_FRAME = [100.0, 100.0, 1200.0, 800.0]
-# ID, kind and time columns, plus the table borders and padding.
-FIXED_COLUMNS_WIDTH = SHORT_ID_LENGTH + 6 + 11 + 16
+# ID, kind and time columns, plus the table borders and padding. The longest kind is `opencode`.
+FIXED_COLUMNS_WIDTH = SHORT_ID_LENGTH + 8 + 11 + 16
 MIN_TEXT_WIDTH = 12
 
 # Claude Code title records, from the strongest to the weakest. The last record of a type wins.
@@ -36,7 +37,7 @@ SDK_ENTRYPOINT_PREFIX = "sdk-"
 
 @dataclass(frozen=True)
 class Session:
-    """A saved omp or Claude Code session. `modified` is the time of its last activity."""
+    """A saved agent session. `modified` is the time of its last activity."""
 
     kind: str
     session_id: str
@@ -151,11 +152,38 @@ def session_files(cutoff: float) -> list[tuple[str, Path]]:
 
 SESSION_READERS = {"omp": omp_session, "claude": claude_session}
 
+OPENCODE_RECENT = ("SELECT id, directory AS cwd, title, time_updated / 1000.0 AS modified FROM session "
+                   "WHERE parent_id IS NULL AND time_archived IS NULL AND time_updated >= ? * 1000")
+# A session that hermes compressed continues in a child session, so only the child is listed.
+HERMES_RECENT = ("SELECT id, cwd, title, COALESCE(last_activity_at, ended_at, started_at) AS modified "
+                 "FROM sessions WHERE source IN ('cli', 'tui') AND archived = 0 AND COALESCE(cwd, '') != '' "
+                 "AND COALESCE(end_reason, '') != 'compression' "
+                 "AND COALESCE(last_activity_at, ended_at, started_at) >= ?")
+
+
+def row_session(kind: str, database: Path, row: sqlite3.Row) -> Session:
+    """Return the session of a database row with the columns `id`, `cwd`, `title` and `modified`."""
+    modified = datetime.fromtimestamp(row["modified"])
+    return Session(kind, row["id"], row["cwd"], row["title"] or "", database, modified)
+
+
+def opencode_sessions(cutoff: float) -> list[Session]:
+    """Return the top-level opencode sessions that changed after the cutoff time."""
+    rows = agents.read_rows(OPENCODE_DB, OPENCODE_RECENT, (cutoff,))
+    return [row_session("opencode", OPENCODE_DB, row) for row in rows]
+
+
+def hermes_sessions(cutoff: float) -> list[Session]:
+    """Return the hermes chat sessions with a folder that were active after the cutoff time."""
+    rows = agents.read_rows(HERMES_DB, HERMES_RECENT, (cutoff,))
+    return [row_session("hermes", HERMES_DB, row) for row in rows]
+
 
 def recent_sessions(days: int) -> list[Session]:
     """Return the sessions active in the last `days` days that do not run now, newest first."""
     cutoff = time.time() - days * SECONDS_PER_DAY
-    found = [SESSION_READERS[kind](path) for kind, path in session_files(cutoff)]
+    from_files = [SESSION_READERS[kind](path) for kind, path in session_files(cutoff)]
+    found = from_files + opencode_sessions(cutoff) + hermes_sessions(cutoff)
     running = agents.running_sessions()
     stopped = [session for session in found if session and (session.kind, session.session_id) not in running]
     return sorted(stopped, key=lambda session: session.modified, reverse=True)
@@ -193,7 +221,17 @@ def claude_resume(session: Session) -> str:
     return f"cd {shlex.quote(session.cwd)} && claude --resume {shlex.quote(session.session_id)}"
 
 
-RESUME_COMMANDS = {"omp": omp_resume, "claude": claude_resume}
+def opencode_resume(session: Session) -> str:
+    """Return the command that resumes an opencode session from its ID."""
+    return agents.opencode_resume(session.cwd, session.session_id)
+
+
+def hermes_resume(session: Session) -> str:
+    """Return the command that resumes a hermes session from its ID."""
+    return agents.hermes_resume(session.cwd, session.session_id)
+
+
+RESUME_COMMANDS = {"omp": omp_resume, "claude": claude_resume, "opencode": opencode_resume, "hermes": hermes_resume}
 
 
 def session_tab(session: Session) -> Tab:

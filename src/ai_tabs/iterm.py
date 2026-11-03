@@ -9,6 +9,7 @@ import iterm2
 
 from .agents import find_agent
 from .config import OSASCRIPT
+from .folders import pane_folder
 from .models import Pane, Tab, Window
 from .system import run
 
@@ -52,12 +53,18 @@ def layout_tree(root: Any) -> dict | None:
 
 
 async def read_pane(session: iterm2.Session, profile: iterm2.Profile) -> Pane:
-    """Read one iTerm2 session, its profile name, its size and the agent that runs in it."""
+    """Read one iTerm2 session, its profile name, its size and the agent that runs in it.
+
+    A pane without an agent takes the folder of its foreground program, because iTerm2 updates
+    the `path` variable only at a prompt.
+    """
     tty = await session.async_get_variable("tty") or ""
-    path = await session.async_get_variable("path") or ""
+    iterm_path = await session.async_get_variable("path") or ""
+    agent = find_agent(tty)
+    path = iterm_path if agent else pane_folder(tty, iterm_path)
     size = session.grid_size
     columns, rows = (size.width, size.height) if size else (None, None)
-    return Pane(without_status(session.name or ""), tty, path, find_agent(tty), profile.name, columns, rows)
+    return Pane(without_status(session.name or ""), tty, path, agent, profile.name, columns, rows)
 
 
 def shown_tab_color(profile: iterm2.Profile, dark_mode: bool) -> iterm2.Color | None:

@@ -9,11 +9,12 @@ from datetime import datetime
 from pathlib import Path
 
 import pytest
-from factories import windows_with_tabs
+from factories import shell_pane, tab, windows_with_tabs
 
-from ai_tabs import cli, snapshot, store
+from ai_tabs import cli, snapshot, store, watch
 from ai_tabs.config import LAUNCHCTL, write_config
-from ai_tabs.watch import Debouncer
+from ai_tabs.models import Pane, Window
+from ai_tabs.watch import Debouncer, same_except_resize
 
 QUIET = 0.05
 GAP = 0.3
@@ -152,3 +153,98 @@ def test_a_second_writer_waits_for_the_lock_and_then_finds_no_change(monkeypatch
         second_id = second.result(timeout=5)
 
     assert (waited, second_id, len(store.summaries())) == (True, None, 1)
+
+
+def sized_window(frame: list[float], columns: int, rows: int) -> Window:
+    """Return one window with one shell tab, whose pane has the size `columns` x `rows`."""
+    return Window(frame, [tab(Pane("zsh", "/dev/ttys001", "/work", columns=columns, rows=rows))])
+
+
+def test_windows_that_differ_only_in_frames_count_as_the_same():
+    old = [Window([0, 0, 800, 600], [tab(shell_pane(), title="build")])]
+    new = [Window([40, 20, 1200, 900], [tab(shell_pane(), title="build")])]
+
+    assert same_except_resize(old, new) is True
+
+
+def test_a_resize_that_changes_the_frame_and_the_pane_sizes_counts_as_the_same():
+    old = [sized_window([0, 0, 800, 600], 96, 25)]
+    new = [sized_window([0, 0, 400, 300], 46, 14)]
+
+    assert same_except_resize(old, new) is True
+
+
+def test_a_divider_drag_with_the_same_frame_counts_as_a_change():
+    old = [sized_window([0, 0, 800, 600], 96, 25)]
+    new = [sized_window([0, 0, 800, 600], 46, 25)]
+
+    assert same_except_resize(old, new) is False
+
+
+def test_a_different_tab_title_counts_as_a_change():
+    old = [Window([0, 0, 800, 600], [tab(shell_pane(), title="build")])]
+    new = [Window([0, 0, 800, 600], [tab(shell_pane(), title="deploy")])]
+
+    assert same_except_resize(old, new) is False
+
+
+def test_a_resize_with_a_different_tab_title_counts_as_a_change():
+    old = [Window([0, 0, 800, 600], [tab(shell_pane(), title="build")])]
+    new = [Window([0, 0, 400, 300], [tab(shell_pane(), title="deploy")])]
+
+    assert same_except_resize(old, new) is False
+
+
+def test_an_added_window_counts_as_a_change():
+    old = [Window([0, 0, 800, 600], [tab(shell_pane())])]
+    new = [*old, Window([0, 0, 800, 600], [tab(shell_pane("/dev/ttys009"))])]
+
+    assert same_except_resize(old, new) is False
+
+
+@pytest.fixture
+def read_by_watcher(monkeypatch):
+    """Replace the iTerm2 read of the watcher. Return a function that sets the windows of the next read."""
+    monkeypatch.setattr(snapshot, "boot_time", lambda: None)
+    current: list[list[Window]] = []
+
+    async def fake_read(_connection):
+        return current[-1]
+
+    monkeypatch.setattr(watch, "read_windows", fake_read)
+    return current.append
+
+
+def test_the_watcher_stores_nothing_when_a_window_only_changes_its_size(read_by_watcher, capsys):
+    snapshot.store_if_changed([sized_window([0, 0, 800, 600], 96, 25)], datetime(2026, 11, 3, 10, 0, 0))
+    read_by_watcher([sized_window([100, 50, 400, 300], 46, 14)])
+
+    asyncio.run(watch.logged_snapshot(None))
+
+    assert (len(store.summaries()), capsys.readouterr().out.endswith("No change (frame only)\n")) == (1, True)
+
+
+def test_the_watcher_stores_a_snapshot_after_a_divider_drag(read_by_watcher):
+    snapshot.store_if_changed([sized_window([0, 0, 800, 600], 96, 25)], datetime(2026, 11, 3, 10, 0, 0))
+    read_by_watcher([sized_window([0, 0, 800, 600], 46, 25)])
+
+    asyncio.run(watch.logged_snapshot(None))
+
+    assert len(store.summaries()) == 2
+
+
+def test_the_watcher_stores_a_snapshot_when_a_tab_opens(read_by_watcher, capsys):
+    snapshot.store_if_changed(windows_with_tabs(2), datetime(2026, 11, 3, 10, 0, 0))
+    read_by_watcher(windows_with_tabs(3))
+
+    asyncio.run(watch.logged_snapshot(None))
+
+    assert (len(store.summaries()), "Wrote snapshot" in capsys.readouterr().out) == (2, True)
+
+
+def test_the_watcher_stores_the_first_snapshot_when_the_history_is_empty(read_by_watcher):
+    read_by_watcher(windows_with_tabs(1))
+
+    asyncio.run(watch.logged_snapshot(None))
+
+    assert len(store.summaries()) == 1

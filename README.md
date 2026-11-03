@@ -2,7 +2,7 @@
 
 # ai-tabs
 
-`ai-tabs` saves your iTerm2 tabs, and the omp and Claude Code sessions in them. After a reboot or a crash, it opens the tabs again and resumes each agent session.
+`ai-tabs` saves your iTerm2 tabs, and the omp, Claude Code, opencode and hermes sessions in them. After a reboot or a crash, it opens the tabs again and resumes each agent session.
 
 - It takes a snapshot every 5 minutes through the iTerm2 Python API. A snapshot holds the windows, the tab order, titles and colors, the split layout, the iTerm2 profile of each pane, and the agent session in each pane.
 - It keeps the snapshots in a SQLite database for 30 days. It pins the last snapshot before a reboot, or before many tabs close at once. The history never deletes pinned snapshots.
@@ -66,6 +66,8 @@ Run `ai-tabs` without a command to open the restore screen. In iTerm2, the logo 
 | `enter` | Restore the selected tabs. In iTerm2, it asks first: new windows, or new tabs in this window |
 | `c` | Show the ai-tabs commands, as `ai-tabs --help` |
 | `d` | Dry run: show the commands that restore runs for the selected tabs |
+| `r` | Resume recent sessions that do not run: `space` selects, `enter` resumes |
+| `l` | Open a saved layout |
 | `h` | Show the changes that the snapshot records |
 | `p` | Pin the snapshot, or remove its pin |
 | `e` | Export the snapshot as Markdown to `export_dir` |
@@ -91,7 +93,7 @@ The restore opens new windows with the saved order, frame, titles, colors, split
 | `ai-tabs history [--limit N]` | List the snapshots, newest first |
 | `ai-tabs pin ID`, `ai-tabs unpin ID` | Pin a snapshot, or remove its pin |
 | `ai-tabs export [ID …] [--to DIR]` | Write snapshots as Markdown files |
-| `ai-tabs sessions [--days N] [--open ID …] [--here]` | List the recent omp and Claude Code sessions that do not run now, or resume them by ID prefix |
+| `ai-tabs sessions [--days N] [--open ID …] [--here]` | List the recent agent sessions that do not run now, or resume them by ID prefix |
 | `ai-tabs layout save NAME [--from ID] [--tab 1.3 …]` | Save the current tabs, or tabs of a snapshot, under a name. Layouts never expire |
 | `ai-tabs layout list`, `layout show NAME`, `layout open NAME [--here] [--dry-run]`, `layout delete NAME` | List, show, open or delete the named layouts |
 | `ai-tabs backup [--list] [--restore DATE\|latest] [--yes]` | Write today's backup, list the backups, or restore one |
@@ -144,13 +146,17 @@ ai-tabs config set export_latest true
 
 - **Claude Code**: `~/.claude/sessions/<pid>.json` gives the session ID and folder of each `claude` process.
 - **omp**: `lsof` gives the session file that each `omp` process holds open. omp holds the file open only while it writes to it, so for an idle resumed session the file comes from `omp --resume <file>`. The first lines of the file give the session ID, folder and title.
+- **opencode**: the session comes from `--session <id>`. Without the flag, it is the newest session of the process folder in `~/.local/share/opencode/opencode.db` that started after the process. Resume: `opencode --session <id>`.
+- **hermes**: the session comes from `--resume <id>`. Without the flag, it is the newest open chat session of the process folder in `~/.hermes/state.db`. Resume: `hermes chat --resume <id>`.
 - `ps` gives the terminal of each process, and its command line for the launch flags. `ps` drops the original quotes, so a flag value with spaces can split into more words.
+- A pane without an agent takes the folder of the program that runs in it (`lsof -d cwd`), or the iTerm2 folder when the shell shows its prompt.
 
 ## Limits
 
 - Only iTerm2 on macOS.
 - A reboot stops every process. `ai-tabs` opens the tabs again and resumes the sessions, but it does not bring back running processes.
-- It resumes only omp and Claude Code sessions. Other panes go back to their folder.
+- It resumes omp, Claude Code, opencode and hermes sessions. Other panes go back to their folder.
+- The opencode and hermes databases are opened read only. When the command line does not name the session, ai-tabs takes it from the folder and the start time of the process. It finds nothing after `--continue`, after a session picked inside the agent, or before the first message.
 
 ## Development
 
@@ -165,13 +171,11 @@ uv run typer ai_tabs.cli utils docs --name ai-tabs --title ai-tabs --output docs
 
 The `Release` workflow publishes to PyPI when a tag `vX.Y.Z` arrives on GitHub. It runs the tests, checks that the tag is the version in `pyproject.toml`, builds the wheel and the sdist, then uploads them with PyPI Trusted Publishing. No token is stored in GitHub.
 
-Before a release, move the `[Unreleased]` entries of `CHANGELOG.md` to a new section for the version, with the date. Then:
+Put the changes under `## [Unreleased]` in `CHANGELOG.md`, commit them, then run the release script. It checks that `main` is clean and up to date, moves the Unreleased items to the new version, bumps the version, regenerates `docs/cli.md`, runs ruff and pytest, commits, tags and pushes. Then it waits for the workflow and for PyPI, installs the new version, restarts the watcher and runs `ai-tabs doctor`:
 
 ```sh
-uv version --bump minor   # or patch, major
-git commit -am "chore: release v$(uv version --short)"
-git tag "v$(uv version --short)"
-git push origin main --tags
+uv run scripts/release.py minor --dry-run   # or patch, major
+uv run scripts/release.py minor
 ```
 
 ## License

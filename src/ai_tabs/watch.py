@@ -1,6 +1,7 @@
 """Watch iTerm2 and take a snapshot when a tab, a window or a pane opens or closes."""
 
 import asyncio
+import dataclasses
 import sqlite3
 import sys
 import time
@@ -12,8 +13,10 @@ import iterm2
 from iterm2.notifications import async_subscribe_to_layout_change_notification
 from websockets.exceptions import WebSocketException
 
-from .iterm import iterm_is_running
-from .snapshot import take_snapshot
+from . import store
+from .iterm import iterm_is_running, read_windows
+from .models import Tab, Window
+from .snapshot import record_snapshot
 
 PREFIX = "watch: "
 QUIET_SECONDS = 2.0
@@ -58,10 +61,74 @@ def log(text: str) -> None:
     print(f"{PREFIX}{datetime.now():%H:%M:%S} {text}")
 
 
+def without_pane_sizes(tab: Tab) -> Tab:
+    """Return a copy of the tab with no size on its panes."""
+    panes = [dataclasses.replace(pane, columns=None, rows=None) for pane in tab.panes]
+    return dataclasses.replace(tab, panes=panes)
+
+
+def without_size(window: Window) -> Window:
+    """Return a copy of the window with no frame and no pane sizes.
+
+    A resize of a window also changes the size of each pane in it.
+    """
+    tabs = [without_pane_sizes(tab) for tab in window.tabs]
+    return dataclasses.replace(window, frame=[], tabs=tabs)
+
+
+def same_window_except_resize(old: Window, new: Window) -> bool:
+    """Return True when the two windows differ only in their frame and in the pane sizes that follow it.
+
+    When the frame did not change, the pane sizes count, so that a move of a split divider is a change.
+    """
+    if old.frame == new.frame:
+        return old == new
+    return without_size(old) == without_size(new)
+
+
+def same_except_resize(old: list[Window], new: list[Window]) -> bool:
+    """Return True when the windows differ only in their frames and in the pane sizes of the resized windows."""
+    pairs = zip(old, new, strict=False)
+    return len(old) == len(new) and all(same_window_except_resize(*pair) for pair in pairs)
+
+
+def is_resize_only_change(windows: list[Window]) -> bool:
+    """Return True when the windows differ from the latest snapshot only by a resize or a move of windows."""
+    latest = store.latest_snapshot()
+    return latest is not None and same_except_resize(latest.windows, windows)
+
+
+def pane_total(windows: list[Window]) -> int:
+    """Return the number of panes in all the windows."""
+    return sum(len(tab.panes) for window in windows for tab in window.tabs)
+
+
+def record_layout(windows: list[Window]) -> None:
+    """Store the windows as a snapshot and log the result. Skip a resize or a move of windows only.
+
+    A resize or a move of a window gives a layout event. The interval agent stores frame changes later.
+    """
+    if is_resize_only_change(windows):
+        log("No change (frame only)")
+        return
+    new_id = record_snapshot(windows, datetime.now())
+    status = f"Wrote snapshot {new_id}" if new_id else "No change"
+    log(f"{status} ({pane_total(windows)} panes)")
+
+
+async def watch_snapshot(connection: iterm2.Connection) -> None:
+    """Read iTerm2 once and record the layout. Keep the previous snapshot when iTerm2 has no windows."""
+    windows = await read_windows(connection)
+    if not windows:
+        print(f"{PREFIX}No iTerm2 windows: the previous snapshot stays.", file=sys.stderr)
+        return
+    record_layout(windows)
+
+
 async def logged_snapshot(connection: iterm2.Connection) -> None:
     """Take a snapshot with the `watch:` prefix. Log a failed snapshot, so that the watcher goes on."""
     try:
-        await take_snapshot(connection, PREFIX)
+        await watch_snapshot(connection)
     except SNAPSHOT_ERRORS as error:
         log(f"The snapshot failed: {error!r}")
 
