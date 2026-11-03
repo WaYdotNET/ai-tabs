@@ -13,8 +13,9 @@ from .models import agent_count, tab_count
 from .palette import Palette
 from .sessions import SHORT_ID_LENGTH, Session
 
-# The check, ID, kind and time columns, the cell padding of six columns, the box border and the scrollbar.
-SESSION_FIXED_WIDTH = 1 + SHORT_ID_LENGTH + 6 + 11 + 12 + 2 + 2
+# The check, ID, kind (`opencode` is the longest) and time columns, the cell padding of six columns, the box
+# border and the scrollbar.
+SESSION_FIXED_WIDTH = 1 + SHORT_ID_LENGTH + 8 + 11 + 12 + 2 + 2
 MIN_TEXT_WIDTH = 12
 # The list box takes 90% of the screen width.
 BOX_PERCENT = 90
