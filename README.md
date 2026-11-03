@@ -1,4 +1,4 @@
-<p align="center"><img src="src/ai_tabs/assets/logo.png" alt="ai-tabs" width="360"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/WaYdotNET/ai-tabs/main/src/ai_tabs/assets/logo.png" alt="ai-tabs" width="360"></p>
 
 # ai-tabs
 

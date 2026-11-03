@@ -4,6 +4,12 @@ All the changes to ai-tabs that users can see. The format follows [Keep a Change
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-03
+
+### Fixed
+
+- The logo shows on the PyPI page. The README now links to the logo with an absolute URL.
+
 ## [0.1.0] - 2026-11-03
 
 The first release.
@@ -24,5 +30,6 @@ The first release.
 - A dark and a light theme in the colors of the logo. The `theme` setting is `auto` (the macOS appearance), `dark` or `light`. The `t` key switches the theme and saves the choice.
 - A logo splash in iTerm2 (setting `splash`).
 
-[Unreleased]: https://github.com/WaYdotNET/ai-tabs/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/WaYdotNET/ai-tabs/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/WaYdotNET/ai-tabs/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/WaYdotNET/ai-tabs/releases/tag/v0.1.0
