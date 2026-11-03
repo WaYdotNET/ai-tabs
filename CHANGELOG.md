@@ -4,6 +4,20 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-03
+
+### Added
+
+- `ai-tabs doctor` checks the whole setup in one command.
+- `ai-tabs watch` and a second launchd agent: a snapshot about 2 seconds after a tab, window or pane change. Setting `watch`.
+- `ai-tabs sessions` lists the recent omp and Claude Code sessions that do not run, and `--open` resumes them.
+- `ai-tabs layout` saves, lists, shows, opens and deletes named layouts.
+- `ai-tabs backup --list` and `ai-tabs backup --restore DATE`, with a safety copy of the current database.
+
+### Fixed
+
+- Two snapshots at the same moment no longer write the same snapshot twice or fail on the daily backup.
+
 ## [0.2.2] - 2026-11-03
 
 ### Fixed

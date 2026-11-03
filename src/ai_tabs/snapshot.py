@@ -1,6 +1,9 @@
 """Take a snapshot: read iTerm2, store it when it changed, pin, export, prune and back up."""
 
+import fcntl
 import sys
+from collections.abc import Iterator
+from contextlib import contextmanager
 from datetime import datetime
 
 import iterm2
@@ -45,8 +48,25 @@ def export_latest(snapshot_id: str) -> None:
         markdown.write_latest(snapshot, settings().export_dir)
 
 
+@contextmanager
+def snapshot_lock() -> Iterator[None]:
+    """Hold the lock file of the snapshots until the block ends. Wait while another process holds it."""
+    path = settings().data_dir / "snapshot.lock"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    # Two processes write snapshots at the same time: the watcher and the launchd interval agent.
+    with path.open("w") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        yield
+
+
 def record_snapshot(windows: list[Window], moment: datetime) -> str | None:
-    """Store the windows as a new snapshot if they changed. Return the new ID, or None."""
+    """Store the windows as a new snapshot if they changed, under the snapshot lock. Return the new ID, or None."""
+    with snapshot_lock():
+        return store_if_changed(windows, moment)
+
+
+def store_if_changed(windows: list[Window], moment: datetime) -> str | None:
+    """Store the windows as a new snapshot if they changed, then pin, export, prune and back up."""
     previous = store.latest_snapshot()
     if previous is not None and previous.windows == windows:
         return None
@@ -59,13 +79,16 @@ def record_snapshot(windows: list[Window], moment: datetime) -> str | None:
     return new_id
 
 
-async def take_snapshot(connection: iterm2.Connection) -> None:
-    """Take the snapshot. Keep the previous snapshot when iTerm2 has no windows."""
+async def take_snapshot(connection: iterm2.Connection, prefix: str = "") -> None:
+    """Take the snapshot and log it. Keep the previous snapshot when iTerm2 has no windows.
+
+    `prefix` starts each log line, so that the log shows which process took the snapshot.
+    """
     windows = await read_windows(connection)
     if not windows:
-        print("No iTerm2 windows: the previous snapshot stays.", file=sys.stderr)
+        print(f"{prefix}No iTerm2 windows: the previous snapshot stays.", file=sys.stderr)
         return
     new_id = record_snapshot(windows, datetime.now())
     panes = sum(len(tab.panes) for window in windows for tab in window.tabs)
     status = f"Wrote snapshot {new_id}" if new_id else "No change"
-    print(f"{datetime.now():%H:%M:%S} {status} ({panes} panes)")
+    print(f"{prefix}{datetime.now():%H:%M:%S} {status} ({panes} panes)")

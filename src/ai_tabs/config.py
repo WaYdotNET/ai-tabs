@@ -25,6 +25,8 @@ OMP_SESSION_DIR = HOME / ".omp/agent/sessions"
 
 LAUNCHD_LABEL = "com.github.ai-tabs.snapshot"
 LAUNCHD_PLIST = HOME / f"Library/LaunchAgents/{LAUNCHD_LABEL}.plist"
+WATCH_LAUNCHD_LABEL = "com.github.ai-tabs.watch"
+WATCH_LAUNCHD_PLIST = HOME / f"Library/LaunchAgents/{WATCH_LAUNCHD_LABEL}.plist"
 LAUNCHD_LOG = HOME / "Library/Logs/ai-tabs.log"
 
 # Fixed macOS paths: the PATH of launchd, sudo or a non-login shell can leave out /usr/sbin.
@@ -44,6 +46,7 @@ SETTING_KINDS = {
     "snapshot_interval": "seconds",
     "splash": "true or false",
     "theme": "auto, dark or light",
+    "watch": "true or false",
 }
 SETTING_HELP = {
     "data_dir": "folder of the snapshot database",
@@ -55,6 +58,7 @@ SETTING_HELP = {
     "snapshot_interval": "seconds between two snapshots of the launchd agent (run `ai-tabs install` after a change)",
     "splash": "show the logo for a moment when the restore screen opens",
     "theme": "colors of the restore screen; auto follows the macOS appearance",
+    "watch": "take a snapshot when a tab or window opens or closes (run `ai-tabs install` after a change)",
 }
 
 
@@ -71,6 +75,7 @@ class Settings:
     snapshot_interval: int
     splash: bool
     theme: str
+    watch: bool
 
     @property
     def database(self) -> Path:
@@ -105,6 +110,7 @@ def settings() -> Settings:
         snapshot_interval=int(config.get("snapshot_interval", 300)),
         splash=bool(config.get("splash", True)),
         theme=str(config.get("theme", "auto")),
+        watch=bool(config.get("watch", True)),
     )
 
 

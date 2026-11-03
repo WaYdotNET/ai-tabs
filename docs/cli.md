@@ -5,7 +5,8 @@ Save and restore iTerm2 tabs with their omp and Claude Code sessions.
 Without a command, `ai-tabs` opens the restore screen: the snapshots on the left, the tabs
 of the selected snapshot on the right.
 
-A launchd agent takes a snapshot every 5 minutes. To set it up, run `ai-tabs install`.
+A launchd agent takes a snapshot every 5 minutes. A second agent takes a snapshot when a tab
+or window opens or closes. To set them up, run `ai-tabs install`.
 The snapshots go to a SQLite database. The history keeps them for 30 days. Pinned snapshots
 stay: `ai-tabs` pins the last snapshot before a reboot or a crash by itself.
 
@@ -29,11 +30,15 @@ $ ai-tabs [OPTIONS] COMMAND [ARGS]...
 * `history`: List the latest snapshots, newest first.
 * `pin`: Pin a snapshot, so that the history never...
 * `unpin`: Remove the pin of a snapshot.
-* `backup`: Write a backup of the snapshot database now.
+* `sessions`: List the recent omp and Claude Code...
+* `backup`: Write a backup of the snapshot database...
 * `export`: Write snapshots as Markdown files, one...
-* `install`: Load the launchd agent that takes the...
-* `uninstall`: Stop and remove the launchd agent.
+* `install`: Load the launchd agents that take the...
+* `uninstall`: Stop and remove the launchd agents.
+* `watch`: Take a snapshot when a tab, a window or a...
+* `doctor`: Check iTerm2, its Python API, the launchd...
 * `config`: Show or change the settings in...
+* `layout`: Save tabs under a name, and open them...
 
 ## `ai-tabs changelog`
 
@@ -183,12 +188,32 @@ $ ai-tabs unpin [OPTIONS] {SNAPSHOT}
 
 * `--help`: Show this message and exit.
 
+## `ai-tabs sessions`
+
+List the recent omp and Claude Code sessions that do not run now, newest first.
+
+The last activity is the time of the last change of the session file. With `--open`, the
+selected sessions resume as tabs of one new window, or of this window with `--here`.
+
+**Usage**:
+
+```console
+$ ai-tabs sessions [OPTIONS]
+```
+
+**Options**:
+
+* `--days <int>`: Show the sessions with activity in the last N days.  [default: 7]
+* `--open ID`: Resume the listed session with this ID prefix. Repeat it for more sessions.
+* `--here`: With --open: open the sessions in this window.
+* `--help`: Show this message and exit.
+
 ## `ai-tabs backup`
 
-Write a backup of the snapshot database now.
+Write a backup of the snapshot database now, list the backups, or restore one.
 
 `snapshot` also writes one backup a day by itself. The backups go to `backup_dir` and only
-the newest `backup_keep` stay. To use a backup, copy it over the database file.
+the newest `backup_keep` stay. `--restore` first writes a safety copy of the live database.
 
 **Usage**:
 
@@ -198,6 +223,9 @@ $ ai-tabs backup [OPTIONS]
 
 **Options**:
 
+* `--list`: List the backups and do not write one.
+* `--restore DATE`: Restore the backup of DATE (YYYY-MM-DD) or `latest`.
+* `--yes`: Restore without a question.
 * `--help`: Show this message and exit.
 
 ## `ai-tabs export`
@@ -224,11 +252,13 @@ $ ai-tabs export [OPTIONS] [SNAPSHOT...]
 
 ## `ai-tabs install`
 
-Load the launchd agent that takes the snapshots.
+Load the launchd agents that take the snapshots.
 
-The agent runs `ai-tabs snapshot` at login and every `snapshot_interval` seconds. Its log is
+One agent runs `ai-tabs snapshot` at login and every `snapshot_interval` seconds. It finds the
+agent sessions that start in a pane that is already open. When `watch` is true, a second agent
+runs `ai-tabs watch`, which takes a snapshot when a tab or window opens or closes. The log is
 `~/Library/Logs/ai-tabs.log`. Run the command again after you move or reinstall the tool,
-or after you change `snapshot_interval`.
+or after you change `snapshot_interval` or `watch`.
 
 **Usage**:
 
@@ -242,12 +272,47 @@ $ ai-tabs install [OPTIONS]
 
 ## `ai-tabs uninstall`
 
-Stop and remove the launchd agent. The database, the backups and the configuration stay.
+Stop and remove the launchd agents. The database, the backups and the configuration stay.
 
 **Usage**:
 
 ```console
 $ ai-tabs uninstall [OPTIONS]
+```
+
+**Options**:
+
+* `--help`: Show this message and exit.
+
+## `ai-tabs watch`
+
+Take a snapshot when a tab, a window or a pane opens or closes.
+
+The command runs until you stop it. A burst of changes gives one snapshot, 2 seconds after the
+last change. When iTerm2 does not run, the command waits and connects again when iTerm2 starts.
+`ai-tabs install` loads it as a launchd agent when the `watch` setting is true.
+
+**Usage**:
+
+```console
+$ ai-tabs watch [OPTIONS]
+```
+
+**Options**:
+
+* `--help`: Show this message and exit.
+
+## `ai-tabs doctor`
+
+Check iTerm2, its Python API, the launchd agents, the database, the backups and the agent detection.
+
+Each row shows `ok`, `warn` or `fail`, the check and what it found. The command only reads.
+The exit code is 1 when a check fails, else 0.
+
+**Usage**:
+
+```console
+$ ai-tabs doctor [OPTIONS]
 ```
 
 **Options**:
@@ -285,7 +350,7 @@ $ ai-tabs config set [OPTIONS] {key} {value}
 
 **Arguments**:
 
-* `key`: One of: data_dir, export_dir, export_latest, backup_dir, backup_keep, history_days, snapshot_interval, splash, theme.  [required]
+* `key`: One of: data_dir, export_dir, export_latest, backup_dir, backup_keep, history_days, snapshot_interval, splash, theme, watch.  [required]
 * `value`: A folder, true or false, or a whole number, as the setting needs.  [required]
 
 **Options**:
@@ -304,7 +369,129 @@ $ ai-tabs config unset [OPTIONS] {key}
 
 **Arguments**:
 
-* `key`: One of: data_dir, export_dir, export_latest, backup_dir, backup_keep, history_days, snapshot_interval, splash, theme.  [required]
+* `key`: One of: data_dir, export_dir, export_latest, backup_dir, backup_keep, history_days, snapshot_interval, splash, theme, watch.  [required]
+
+**Options**:
+
+* `--help`: Show this message and exit.
+
+## `ai-tabs layout`
+
+Save tabs under a name, and open them again later.
+
+A layout stays until you delete it: the history prune never deletes a layout.
+
+**Usage**:
+
+```console
+$ ai-tabs layout [OPTIONS] COMMAND [ARGS]...
+```
+
+**Options**:
+
+* `--help`: Show this message and exit.
+
+**Commands**:
+
+* `save`: Save tabs as a layout.
+* `list`: List the layouts with the time when they...
+* `show`: Show the commands that `layout open` runs,...
+* `open`: Open the tabs of a layout and resume their...
+* `delete`: Delete a layout.
+
+### `ai-tabs layout save`
+
+Save tabs as a layout. A layout with the same name gets replaced.
+
+**Examples**
+
+* `ai-tabs layout save work`: save all the tabs that iTerm2 shows now.
+* `ai-tabs layout save work --from latest -t 1.3 -t 1.8`: save two tabs of the latest snapshot.
+
+**Usage**:
+
+```console
+$ ai-tabs layout save [OPTIONS] {NAME}
+```
+
+**Arguments**:
+
+* `NAME`: Layout name: 1 to 40 characters: letters, digits, '-', '_' and '.'.  [required]
+
+**Options**:
+
+* `--from <str>`: Snapshot: `latest` or an ID from `ai-tabs history` (for example 2026-11-02/21-48-18). Without it, the layout takes the windows that iTerm2 shows now.
+* `-t, --tab <str>`: Tab to keep in the layout, as WINDOW.TAB (for example 1.3). Repeat it for more tabs.
+* `--help`: Show this message and exit.
+
+### `ai-tabs layout list`
+
+List the layouts with the time when they were saved and their number of tabs and agents.
+
+**Usage**:
+
+```console
+$ ai-tabs layout list [OPTIONS]
+```
+
+**Options**:
+
+* `--help`: Show this message and exit.
+
+### `ai-tabs layout show`
+
+Show the commands that `layout open` runs, as `restore --dry-run` does.
+
+**Usage**:
+
+```console
+$ ai-tabs layout show [OPTIONS] {NAME}
+```
+
+**Arguments**:
+
+* `NAME`: Layout name: 1 to 40 characters: letters, digits, '-', '_' and '.'.  [required]
+
+**Options**:
+
+* `--help`: Show this message and exit.
+
+### `ai-tabs layout open`
+
+Open the tabs of a layout and resume their agent sessions.
+
+The tabs open in new windows, or as new tabs of this window with `--here`. If an agent
+session still runs in another tab, its pane only goes to the agent folder.
+
+**Usage**:
+
+```console
+$ ai-tabs layout open [OPTIONS] {NAME}
+```
+
+**Arguments**:
+
+* `NAME`: Layout name: 1 to 40 characters: letters, digits, '-', '_' and '.'.  [required]
+
+**Options**:
+
+* `--here`: Open the tabs in this window.
+* `--dry-run`: Show the commands, open nothing.
+* `--help`: Show this message and exit.
+
+### `ai-tabs layout delete`
+
+Delete a layout.
+
+**Usage**:
+
+```console
+$ ai-tabs layout delete [OPTIONS] {NAME}
+```
+
+**Arguments**:
+
+* `NAME`: Layout name: 1 to 40 characters: letters, digits, '-', '_' and '.'.  [required]
 
 **Options**:
 

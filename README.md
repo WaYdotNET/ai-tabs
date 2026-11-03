@@ -36,11 +36,14 @@ To install the latest `main` branch from GitHub:
 uv tool install git+https://github.com/WaYdotNET/ai-tabs
 ```
 
-Then start the snapshots. This command loads a launchd agent that runs `ai-tabs snapshot` at login and every `snapshot_interval` seconds (default 300):
+Then start the snapshots. This command loads two launchd agents. The first runs `ai-tabs snapshot` at login and every `snapshot_interval` seconds (default 300). The second runs `ai-tabs watch`, which takes a snapshot about 2 seconds after a tab, a window or a pane opens or closes (setting `watch`):
 
 ```sh
 ai-tabs install
+ai-tabs doctor
 ```
+
+`ai-tabs doctor` checks iTerm2, its Python API, the shell integration, both agents, the age of the last snapshot, the database, the backups and the agent detection. It exits with code 1 when a check fails.
 
 To stop the snapshots, run `ai-tabs uninstall`. The database, the backups and the configuration stay.
 
@@ -87,10 +90,15 @@ The restore opens new windows with the saved order, frame, titles, colors, split
 | `ai-tabs history [--limit N]` | List the snapshots, newest first |
 | `ai-tabs pin ID`, `ai-tabs unpin ID` | Pin a snapshot, or remove its pin |
 | `ai-tabs export [ID …] [--to DIR]` | Write snapshots as Markdown files |
-| `ai-tabs backup` | Write a backup of the database now |
+| `ai-tabs sessions [--days N] [--open ID …] [--here]` | List the recent omp and Claude Code sessions that do not run now, or resume them by ID prefix |
+| `ai-tabs layout save NAME [--from ID] [--tab 1.3 …]` | Save the current tabs, or tabs of a snapshot, under a name. Layouts never expire |
+| `ai-tabs layout list`, `layout show NAME`, `layout open NAME [--here] [--dry-run]`, `layout delete NAME` | List, show, open or delete the named layouts |
+| `ai-tabs backup [--list] [--restore DATE\|latest] [--yes]` | Write today's backup, list the backups, or restore one |
 | `ai-tabs config`, `config set KEY VALUE`, `config unset KEY` | Show or change the settings |
 | `ai-tabs changelog`, `ai-tabs --version` | Show the changes of each release, or the version |
-| `ai-tabs install`, `ai-tabs uninstall` | Load or remove the launchd agent |
+| `ai-tabs install`, `ai-tabs uninstall` | Load or remove the launchd agents |
+| `ai-tabs watch` | Take a snapshot after each tab, window or pane change. The watcher agent runs it |
+| `ai-tabs doctor` | Check the setup |
 
 A snapshot ID is `YYYY-MM-DD/HH-MM-SS`. `latest` is the newest snapshot. See [docs/cli.md](https://github.com/WaYdotNET/ai-tabs/blob/main/docs/cli.md) for all the options.
 
@@ -114,6 +122,7 @@ A setting takes its value from, in order of priority:
 | `snapshot_interval` | `300` | Seconds between two snapshots. Run `ai-tabs install` after a change |
 | `splash` | `true` | Show the logo for a moment when the restore screen opens, in iTerm2 |
 | `theme` | `auto` | `auto`, `dark` or `light`. `auto` follows the macOS appearance |
+| `watch` | `true` | Take a snapshot when a tab, a window or a pane opens or closes. Run `ai-tabs install` after a change |
 
 The configuration file holds only the settings that you changed, with `config set`, the settings window (`o`) or the `t` key. The other settings take their defaults. `ai-tabs config` shows each value and where it comes from: `file`, `environment` or `default`. `ai-tabs config unset KEY` gives a setting its default again. A new `data_dir` takes effect at the next start.
 
@@ -126,14 +135,14 @@ ai-tabs config set export_latest true
 
 ## Data
 
-- `ai-tabs snapshot` writes one backup a day with SQLite `VACUUM INTO`, which makes a consistent copy. To use a backup, stop the agent with `ai-tabs uninstall`, copy the backup over the database file, then run `ai-tabs install`.
+- `ai-tabs snapshot` writes one backup a day with SQLite `VACUUM INTO`, which makes a consistent copy. `ai-tabs backup --restore DATE` checks the backup, writes a safety copy of the current database (`backups/ai-tabs-before-restore-*.sqlite`, never deleted by the daily prune), then copies the backup into the database with the SQLite online backup API.
 - `ai-tabs export` writes one file per snapshot: `export_dir/YYYY-MM-DD/HH-MM-SS.md`. Each file has a front matter for Obsidian properties and Dataview, the changes, a table of the panes and the resume commands. Nothing reads the exports back: the database stays the only source.
-- The launchd agent logs to `~/Library/Logs/ai-tabs.log`.
+- Both launchd agents log to `~/Library/Logs/ai-tabs.log`. The lines of the watcher start with `watch:`.
 
 ## How it finds the agent sessions
 
 - **Claude Code**: `~/.claude/sessions/<pid>.json` gives the session ID and folder of each `claude` process.
-- **omp**: `lsof` gives the session file that each `omp` process holds open. The first lines of the file give the session ID, folder and title.
+- **omp**: `lsof` gives the session file that each `omp` process holds open. omp holds the file open only while it writes to it, so for an idle resumed session the file comes from `omp --resume <file>`. The first lines of the file give the session ID, folder and title.
 - `ps` gives the terminal of each process, and its command line for the launch flags. `ps` drops the original quotes, so a flag value with spaces can split into more words.
 
 ## Limits

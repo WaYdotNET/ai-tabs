@@ -4,8 +4,8 @@ import os
 import shutil
 import subprocess
 import sys
-from dataclasses import replace
-from datetime import date
+from dataclasses import dataclass, replace
+from datetime import date, datetime
 from pathlib import Path
 from typing import Annotated
 
@@ -14,7 +14,7 @@ import typer
 from rich.markdown import Markdown
 from rich.table import Table
 
-from . import markdown, store
+from . import backups, layouts, markdown, store
 from .about import changelog_text, version_text
 from .config import (
     CONFIG_FILE,
@@ -24,6 +24,8 @@ from .config import (
     LAUNCHD_PLIST,
     SETTING_HELP,
     SETTING_KINDS,
+    WATCH_LAUNCHD_LABEL,
+    WATCH_LAUNCHD_PLIST,
     move_legacy_data,
     parse_setting,
     setting_source,
@@ -33,21 +35,25 @@ from .config import (
     write_config,
 )
 from .display import console, print_sessions
-from .iterm import iterm_is_running
-from .models import Window, positioned_tabs
+from .doctor import has_failure, print_checks, run_checks
+from .iterm import iterm_is_running, read_windows
+from .models import Window, agent_count, positioned_tabs, tab_count
 from .opener import open_in_current_window, open_in_new_windows
 from .palette import chosen_palette
 from .plan import keep_positions, print_plan, resolve_duplicates
 from .screen import show_splash
+from .sessions import Session, matching_sessions, print_recent_sessions, recent_sessions, sessions_window
 from .snapshot import take_snapshot
 from .tui import RestoreApp, RestoreChoice
+from .watch import watch_iterm
 
 HELP = """Save and restore iTerm2 tabs with their omp and Claude Code sessions.
 
 Without a command, `ai-tabs` opens the restore screen: the snapshots on the left, the tabs
 of the selected snapshot on the right.
 
-A launchd agent takes a snapshot every 5 minutes. To set it up, run `ai-tabs install`.
+A launchd agent takes a snapshot every 5 minutes. A second agent takes a snapshot when a tab
+or window opens or closes. To set them up, run `ai-tabs install`.
 The snapshots go to a SQLite database. The history keeps them for 30 days. Pinned snapshots
 stay: `ai-tabs` pins the last snapshot before a reboot or a crash by itself.
 """
@@ -238,14 +244,100 @@ def unpin(reference: Annotated[str, typer.Argument(metavar="SNAPSHOT", help=SNAP
     print(f"Removed the pin of {snapshot.summary.id}.")
 
 
+def chosen_session(listed: list[Session], prefix: str) -> Session:
+    """Return the one listed session whose ID starts with the prefix, or stop with an error."""
+    found = matching_sessions(listed, prefix)
+    if not found:
+        raise typer.BadParameter(f"no listed session starts with {prefix!r}", param_hint="--open")
+    if len(found) > 1:
+        raise typer.BadParameter(f"{len(found)} listed sessions start with {prefix!r}: type more characters",
+                                 param_hint="--open")
+    return found[0]
+
+
+OPEN_SESSION_HELP = "Resume the listed session with this ID prefix. Repeat it for more sessions."
+
+
+@app.command("sessions")
+def sessions_command(
+    days: Annotated[int, typer.Option(help="Show the sessions with activity in the last N days.")] = 7,
+    open_ids: Annotated[list[str] | None, typer.Option("--open", metavar="ID", help=OPEN_SESSION_HELP)] = None,
+    here: Annotated[bool, typer.Option("--here", help="With --open: open the sessions in this window.")] = False,
+) -> None:
+    """List the recent omp and Claude Code sessions that do not run now, newest first.
+
+    The last activity is the time of the last change of the session file. With `--open`, the
+    selected sessions resume as tabs of one new window, or of this window with `--here`.
+    """
+    listed = recent_sessions(days)
+    if not open_ids:
+        print_recent_sessions(listed)
+        return
+    window = sessions_window([chosen_session(listed, prefix) for prefix in open_ids])
+    require_iterm()
+    opener = open_in_current_window if here else open_in_new_windows
+    opener([window])
+
+
+
+def print_backups() -> None:
+    """Print the backups with date, size and snapshot count, newest first."""
+    table = Table("Date", "Size", "Snapshots")
+    for info in backups.list_backups():
+        count = "unreadable" if info.snapshots is None else str(info.snapshots)
+        table.add_row(f"{info.day}", f"{info.size / 1024:.1f} KiB", count)
+    console.print(table)
+
+
+def confirm_restore(path: Path) -> None:
+    """Show what a restore changes and stop when the user does not agree."""
+    print(f"Backup {backups.backup_day(path)} has {backups.snapshot_count(path)} snapshots. "
+          f"The live database has {backups.current_count()} snapshots now.")
+    if not typer.confirm("Replace the live database with this backup?"):
+        print("Nothing changed.")
+        raise typer.Exit(1)
+
+
+def checked_backup(reference: str) -> Path:
+    """Return the backup of a date or of `latest` after the integrity check. Stop with an error when it fails."""
+    try:
+        path = backups.find_backup(reference)
+        backups.check_backup(path)
+    except backups.BackupError as error:
+        console.print(f"[red]{error}[/red]")
+        raise typer.Exit(1) from error
+    return path
+
+
+def restore_from_backup(path: Path) -> None:
+    """Restore a checked backup into the live database and print where the safety copy is."""
+    result = backups.restore_backup(path, datetime.now())
+    print(f"Safety copy of the old database: {result.safety_copy}")
+    print("The daily prune does not delete the safety copy. Delete it yourself when you do not need it.")
+    print(f"Restored {result.snapshots} snapshots from {path}")
+
+
 @app.command()
-def backup() -> None:
-    """Write a backup of the snapshot database now.
+def backup(
+    list_all: Annotated[bool, typer.Option("--list", help="List the backups and do not write one.")] = False,
+    restore_day: Annotated[str | None, typer.Option(
+        "--restore", metavar="DATE", help="Restore the backup of DATE (YYYY-MM-DD) or `latest`.")] = None,
+    yes: Annotated[bool, typer.Option("--yes", help="Restore without a question.")] = False,
+) -> None:
+    """Write a backup of the snapshot database now, list the backups, or restore one.
 
     `snapshot` also writes one backup a day by itself. The backups go to `backup_dir` and only
-    the newest `backup_keep` stay. To use a backup, copy it over the database file.
+    the newest `backup_keep` stay. `--restore` first writes a safety copy of the live database.
     """
-    print(f"Wrote {store.write_backup(date.today())}")
+    if list_all:
+        print_backups()
+    elif restore_day:
+        path = checked_backup(restore_day)
+        if not yes:
+            confirm_restore(path)
+        restore_from_backup(path)
+    else:
+        print(f"Wrote {store.write_backup(date.today())}")
 
 
 @app.command()
@@ -263,33 +355,58 @@ def export(
         print(f"Wrote {markdown.export_snapshot(resolve_snapshot(reference), target)}")
 
 
-def snapshot_command() -> list[str]:
-    """Return the command that launchd runs to take a snapshot.
+def tool_command(subcommand: str) -> list[str]:
+    """Return the command that launchd runs for an `ai-tabs` subcommand.
 
     A tool installed with `uv tool install` has a stable path. Without it, launchd runs the
     package through `uvx`.
     """
     installed = shutil.which("ai-tabs")
     if installed and "/.cache/" not in installed:
-        return [installed, "snapshot"]
-    return [shutil.which("uvx") or "/opt/homebrew/bin/uvx", "ai-tabs", "snapshot"]
+        return [installed, subcommand]
+    return [shutil.which("uvx") or "/opt/homebrew/bin/uvx", "ai-tabs", subcommand]
 
 
-def launchd_plist(command: list[str]) -> str:
-    """Return the launchd agent that takes a snapshot every few minutes."""
-    items = "".join(f"\n    <string>{argument}</string>" for argument in command)
+@dataclass(frozen=True)
+class LaunchAgent:
+    """A launchd agent of ai-tabs. `schedule` holds the plist keys that tell launchd when to run the command."""
+
+    label: str
+    plist: Path
+    command: list[str]
+    schedule: str
+
+
+def snapshot_agent() -> LaunchAgent:
+    """Return the agent that takes a snapshot at login and every `snapshot_interval` seconds."""
+    schedule = f"""  <key>StartInterval</key>
+  <integer>{settings().snapshot_interval}</integer>"""
+    return LaunchAgent(LAUNCHD_LABEL, LAUNCHD_PLIST, tool_command("snapshot"), schedule)
+
+
+def watch_agent() -> LaunchAgent:
+    """Return the agent that runs `ai-tabs watch`. launchd starts it again, at most every 30 seconds, when it stops."""
+    schedule = """  <key>KeepAlive</key>
+  <true/>
+  <key>ThrottleInterval</key>
+  <integer>30</integer>"""
+    return LaunchAgent(WATCH_LAUNCHD_LABEL, WATCH_LAUNCHD_PLIST, tool_command("watch"), schedule)
+
+
+def launchd_plist(agent: LaunchAgent) -> str:
+    """Return the plist of a launchd agent: it starts at load, with a fixed PATH and the ai-tabs log."""
+    items = "".join(f"\n    <string>{argument}</string>" for argument in agent.command)
     path = f"{Path.home()}/.local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin"
     return f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
   <key>Label</key>
-  <string>{LAUNCHD_LABEL}</string>
+  <string>{agent.label}</string>
   <key>ProgramArguments</key>
   <array>{items}
   </array>
-  <key>StartInterval</key>
-  <integer>{settings().snapshot_interval}</integer>
+{agent.schedule}
   <key>RunAtLoad</key>
   <true/>
   <key>EnvironmentVariables</key>
@@ -306,32 +423,77 @@ def launchd_plist(command: list[str]) -> str:
 """
 
 
-def unload_agent() -> None:
-    """Stop the launchd agent. It is not an error when the agent is not loaded."""
-    subprocess.run([LAUNCHCTL, "bootout", f"gui/{os.getuid()}/{LAUNCHD_LABEL}"], capture_output=True, check=False)
+def unload_agent(agent: LaunchAgent) -> None:
+    """Stop a launchd agent. It is not an error when the agent is not loaded."""
+    subprocess.run([LAUNCHCTL, "bootout", f"gui/{os.getuid()}/{agent.label}"], capture_output=True, check=False)
+
+
+def load_agent(agent: LaunchAgent) -> None:
+    """Write the plist of a launchd agent and load it again."""
+    agent.plist.parent.mkdir(parents=True, exist_ok=True)
+    agent.plist.write_text(launchd_plist(agent))
+    unload_agent(agent)
+    subprocess.run([LAUNCHCTL, "bootstrap", f"gui/{os.getuid()}", str(agent.plist)], check=True)
+    print(f"Loaded {agent.plist}.")
+
+
+def remove_agent(agent: LaunchAgent) -> None:
+    """Stop a launchd agent and delete its plist."""
+    unload_agent(agent)
+    if agent.plist.exists():
+        agent.plist.unlink()
+        print(f"Removed {agent.plist}.")
 
 
 @app.command()
 def install() -> None:
-    """Load the launchd agent that takes the snapshots.
+    """Load the launchd agents that take the snapshots.
 
-    The agent runs `ai-tabs snapshot` at login and every `snapshot_interval` seconds. Its log is
+    One agent runs `ai-tabs snapshot` at login and every `snapshot_interval` seconds. It finds the
+    agent sessions that start in a pane that is already open. When `watch` is true, a second agent
+    runs `ai-tabs watch`, which takes a snapshot when a tab or window opens or closes. The log is
     `~/Library/Logs/ai-tabs.log`. Run the command again after you move or reinstall the tool,
-    or after you change `snapshot_interval`.
+    or after you change `snapshot_interval` or `watch`.
     """
-    LAUNCHD_PLIST.parent.mkdir(parents=True, exist_ok=True)
-    LAUNCHD_PLIST.write_text(launchd_plist(snapshot_command()))
-    unload_agent()
-    subprocess.run([LAUNCHCTL, "bootstrap", f"gui/{os.getuid()}", str(LAUNCHD_PLIST)], check=True)
-    print(f"Loaded {LAUNCHD_PLIST}. The database is {settings().database}.")
+    load_agent(snapshot_agent())
+    if settings().watch:
+        load_agent(watch_agent())
+    else:
+        remove_agent(watch_agent())
+    print(f"The database is {settings().database}.")
 
 
 @app.command()
 def uninstall() -> None:
-    """Stop and remove the launchd agent. The database, the backups and the configuration stay."""
-    unload_agent()
-    LAUNCHD_PLIST.unlink(missing_ok=True)
-    print(f"Removed {LAUNCHD_PLIST}. The data stays in {settings().data_dir}.")
+    """Stop and remove the launchd agents. The database, the backups and the configuration stay."""
+    remove_agent(snapshot_agent())
+    remove_agent(watch_agent())
+    print(f"The data stays in {settings().data_dir}.")
+
+
+@app.command()
+def watch() -> None:
+    """Take a snapshot when a tab, a window or a pane opens or closes.
+
+    The command runs until you stop it. A burst of changes gives one snapshot, 2 seconds after the
+    last change. When iTerm2 does not run, the command waits and connects again when iTerm2 starts.
+    `ai-tabs install` loads it as a launchd agent when the `watch` setting is true.
+    """
+    watch_iterm()
+
+
+@app.command()
+def doctor() -> None:
+    """Check iTerm2, its Python API, the launchd agents, the database, the backups and the agent detection.
+
+    Each row shows `ok`, `warn` or `fail`, the check and what it found. The command only reads.
+    The exit code is 1 when a check fails, else 0.
+    """
+    checks = run_checks(tool_command("snapshot")[0])
+    print_checks(checks, chosen_palette())
+    if has_failure(checks):
+        raise typer.Exit(1)
+
 
 
 CONFIG_HELP = "Show or change the settings in `$XDG_CONFIG_HOME/ai-tabs/config.toml` (default `~/.config/ai-tabs`)."
@@ -372,6 +534,118 @@ def config_unset(key: Annotated[str, typer.Argument(help=f"One of: {', '.join(SE
         raise typer.BadParameter(f"unknown setting {key!r}; the settings are {', '.join(SETTING_KINDS)}")
     unset_config(key)
     print(f"{key} = {setting_text(getattr(settings(), key))} (default)")
+
+
+LAYOUT_HELP = """Save tabs under a name, and open them again later.
+
+A layout stays until you delete it: the history prune never deletes a layout.
+"""
+LAYOUT_NAME_HELP = f"Layout name: {layouts.NAME_RULE}."
+LAYOUT_FROM_HELP = f"{SNAPSHOT_HELP} Without it, the layout takes the windows that iTerm2 shows now."
+LAYOUT_TAB_HELP = "Tab to keep in the layout, as WINDOW.TAB (for example 1.3). Repeat it for more tabs."
+layout_app = typer.Typer(rich_markup_mode="markdown", help=LAYOUT_HELP)
+app.add_typer(layout_app, name="layout")
+
+
+def valid_layout_name(name: str) -> str:
+    """Stop with an error that tells why, when a layout name is not valid."""
+    problem = layouts.name_problem(name)
+    if problem is not None:
+        raise typer.BadParameter(problem)
+    return name
+
+
+def resolve_layout(name: str) -> layouts.Layout:
+    """Return the layout with a name, or stop with an error that lists the known names."""
+    layout = layouts.find_layout(name)
+    if layout is None:
+        known = ", ".join(layouts.layout_names()) or "none"
+        raise typer.BadParameter(f"no layout {name!r}; known layouts: {known}", param_hint="NAME")
+    return layout
+
+
+def current_windows() -> list[Window]:
+    """Read the windows, tabs and panes that iTerm2 shows now. Stop quietly when iTerm2 does not run."""
+    require_iterm()
+    return iterm2.run_until_complete(read_windows)
+
+
+def layout_source(source: str | None, tabs: list[str] | None) -> list[Window]:
+    """Return the windows of a snapshot, or of iTerm2 now, with only the requested tabs."""
+    windows = resolve_snapshot(source).windows if source else current_windows()
+    return keep_positions(windows, check_positions(windows, tabs)) if tabs else windows
+
+
+def all_positions(windows: list[Window]) -> list[str]:
+    """Return the position of every tab."""
+    return [position for position, _ in positioned_tabs(windows)]
+
+
+@layout_app.command("save")
+def layout_save(
+    name: Annotated[str, typer.Argument(metavar="NAME", callback=valid_layout_name, help=LAYOUT_NAME_HELP)],
+    source: Annotated[str | None, typer.Option("--from", help=LAYOUT_FROM_HELP)] = None,
+    tabs: Annotated[list[str] | None, typer.Option("--tab", "-t", help=LAYOUT_TAB_HELP)] = None,
+) -> None:
+    """Save tabs as a layout. A layout with the same name gets replaced.
+
+    **Examples**
+
+    * `ai-tabs layout save work`: save all the tabs that iTerm2 shows now.
+    * `ai-tabs layout save work --from latest -t 1.3 -t 1.8`: save two tabs of the latest snapshot.
+    """
+    windows = layout_source(source, tabs)
+    if not windows:
+        raise typer.BadParameter("there are no tabs to save", param_hint="NAME")
+    replaced = layouts.save_layout(name, windows, datetime.now())
+    action = "Replaced" if replaced else "Saved"
+    print(f"{action} layout {name}: {tab_count(windows)} tabs, {agent_count(windows)} agents.")
+
+
+@layout_app.command("list")
+def layout_list() -> None:
+    """List the layouts with the time when they were saved and their number of tabs and agents."""
+    table = Table("Name", "Saved", "Tabs", "Agents")
+    for layout in layouts.all_layouts():
+        table.add_row(layout.name, f"{layout.created_at:%Y-%m-%d %H:%M:%S}", str(tab_count(layout.windows)),
+                      str(agent_count(layout.windows)))
+    console.print(table)
+
+
+@layout_app.command("show")
+def layout_show(name: Annotated[str, typer.Argument(metavar="NAME", help=LAYOUT_NAME_HELP)]) -> None:
+    """Show the commands that `layout open` runs, as `restore --dry-run` does."""
+    windows = resolve_duplicates(resolve_layout(name).windows)
+    print_plan(windows, all_positions(windows))
+
+
+@layout_app.command("open")
+def layout_open(
+    name: Annotated[str, typer.Argument(metavar="NAME", help=LAYOUT_NAME_HELP)],
+    here: Annotated[bool, typer.Option("--here", help="Open the tabs in this window.")] = False,
+    dry_run: Annotated[bool, typer.Option("--dry-run", help="Show the commands, open nothing.")] = False,
+) -> None:
+    """Open the tabs of a layout and resume their agent sessions.
+
+    The tabs open in new windows, or as new tabs of this window with `--here`. If an agent
+    session still runs in another tab, its pane only goes to the agent folder.
+    """
+    windows = resolve_duplicates(resolve_layout(name).windows)
+    if dry_run:
+        print_plan(windows, all_positions(windows))
+        return
+    require_iterm()
+    opener = open_in_current_window if here else open_in_new_windows
+    opener(windows)
+
+
+@layout_app.command("delete")
+def layout_delete(name: Annotated[str, typer.Argument(metavar="NAME", help=LAYOUT_NAME_HELP)]) -> None:
+    """Delete a layout."""
+    resolve_layout(name)
+    layouts.delete_layout(name)
+    print(f"Deleted layout {name}.")
+
 
 
 def run() -> None:
