@@ -4,6 +4,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- The session list of the `r` key keeps its width with opencode sessions in a narrow terminal.
+
 ## [0.4.0] - 2026-11-03
 
 ### Added
