@@ -22,7 +22,7 @@ from textual.widgets import Footer, Input, Label, ListItem, ListView, OptionList
 from textual.widgets.option_list import Option
 
 from . import __version__, markdown, store
-from .about import changelog_text
+from .about import changelog_view
 from .config import (
     CONFIG_FILE,
     SETTING_HELP,
@@ -48,7 +48,8 @@ KEYS = [
     ("a", "select all the visible tabs, or none"),
     ("/", "search tabs, sessions and folders (esc leaves the search)"),
     ("enter", "restore the selected tabs"),
-    ("c", "show the commands that restore runs"),
+    ("c", "show the ai-tabs commands, as ai-tabs --help"),
+    ("d", "dry run: show the commands that restore runs for the selected tabs"),
     ("h", "show the changes that the snapshot records"),
     ("p", "pin the snapshot, or remove its pin (pinned snapshots are never deleted)"),
     ("e", "export the snapshot as Markdown to export_dir"),
@@ -212,6 +213,7 @@ class RestoreApp(App[RestoreChoice]):
         Binding("space", "toggle_tab", "pick"),
         Binding("slash", "search", "search"),
         Binding("c", "commands", "commands"),
+        Binding("d", "dry_run", "dry run", show=False),
         Binding("h", "changes", "changes"),
         Binding("p", "pin", "pin"),
         Binding("question_mark", "keys", "keys"),
@@ -378,12 +380,24 @@ class RestoreApp(App[RestoreChoice]):
             self.exit()
 
     def action_commands(self) -> None:
+        """Show the ai-tabs commands with their help, as `ai-tabs --help` lists them."""
+        # cli imports this module, so the import waits until the window opens.
+        from .cli import command_rows
+
+        grid = Table.grid(padding=(0, 2))
+        grid.add_column(no_wrap=True, style=f"bold {self.palette.cyan}")
+        grid.add_column()
+        for name, text in command_rows():
+            grid.add_row(name, text)
+        self.push_screen(InfoScreen("Commands", grid))
+
+    def action_dry_run(self) -> None:
         """Show the commands that restore runs for the selected tabs."""
         positions = self.selected_positions()
         if not positions:
             self.notify("Select at least one tab (space).", severity="warning")
             return
-        self.push_screen(InfoScreen("Commands", plan_view(self.windows, positions)))
+        self.push_screen(InfoScreen("Dry run", plan_view(self.windows, positions)))
 
     def action_changes(self) -> None:
         """Show the changes that the snapshot records: opened, closed and changed panes."""
@@ -396,8 +410,8 @@ class RestoreApp(App[RestoreChoice]):
         self.push_screen(InfoScreen("Keys", Group(logo_compact(self.palette), Text(""), keys_help(self.palette))))
 
     def action_changelog(self) -> None:
-        """Show the changes of each release."""
-        self.push_screen(InfoScreen(f"ai-tabs v{__version__}", Markdown(changelog_text())))
+        """Show the short view of the changelog: one line per change of each release."""
+        self.push_screen(InfoScreen(f"ai-tabs v{__version__}", changelog_view(self.palette)))
 
     async def action_pin(self) -> None:
         """Pin the current snapshot, or remove its pin."""

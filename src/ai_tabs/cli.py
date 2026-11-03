@@ -11,11 +11,10 @@ from typing import Annotated
 
 import iterm2
 import typer
-from rich.markdown import Markdown
 from rich.table import Table
 
 from . import backups, layouts, markdown, store
-from .about import changelog_text, version_text
+from .about import changelog_view, first_sentence, version_text
 from .config import (
     CONFIG_FILE,
     LAUNCHCTL,
@@ -148,7 +147,7 @@ def main(
 @app.command()
 def changelog() -> None:
     """Show the changes of each release, newest first."""
-    console.print(Markdown(changelog_text()))
+    console.print(changelog_view(chosen_palette()))
 
 
 @app.command()
@@ -646,6 +645,23 @@ def layout_delete(name: Annotated[str, typer.Argument(metavar="NAME", help=LAYOU
     layouts.delete_layout(name)
     print(f"Deleted layout {name}.")
 
+
+
+def short_help(text: str | None) -> str:
+    """Return the first sentence of a help text on one line, as the command list of `ai-tabs --help` shows it."""
+    paragraph = (text or "").strip().split("\n\n")[0]
+    return first_sentence(" ".join(paragraph.split()))
+
+
+def command_rows() -> list[tuple[str, str]]:
+    """Return each command of `ai-tabs` with the first sentence of its help, in the order of `ai-tabs --help`.
+    A group comes first, then each of its subcommands."""
+    rows = [("ai-tabs", "Open the restore screen.")]
+    for name, command in typer.main.get_command(app).commands.items():
+        rows.append((f"ai-tabs {name}", short_help(command.help)))
+        subcommands = getattr(command, "commands", {})
+        rows += [(f"ai-tabs {name} {sub}", short_help(item.help)) for sub, item in subcommands.items()]
+    return rows
 
 
 def run() -> None:
