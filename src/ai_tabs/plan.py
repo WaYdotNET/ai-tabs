@@ -2,14 +2,16 @@
 
 import copy
 import shlex
+from collections.abc import Iterator
 from dataclasses import replace
 
+from rich.console import Group, RenderableType
 from rich.markup import escape
 from rich.text import Text
 
 from . import agents
 from .agents import is_still_running
-from .display import console, tab_heading
+from .display import FoldedLine, console, tab_heading
 from .models import Pane, Tab, Window, positioned_tabs
 
 
@@ -95,15 +97,31 @@ def keep_positions(windows: list[Window], positions: list[str]) -> list[Window]:
     return kept
 
 
-def plan_text(windows: list[Window], positions: list[str]) -> Text:
-    """Return the commands that restore runs for the selected tabs, grouped by tab and with a
-    blank line between the tabs."""
-    lines = []
+def planned_tabs(windows: list[Window], positions: list[str]) -> Iterator[tuple[str, str, list[str]]]:
+    """Yield the heading, the position and the pane commands of each selected tab, in snapshot order."""
     for position, tab in positioned_tabs(windows):
         if position in positions:
-            lines.append(f"[bold]{escape(tab_heading(tab))}[/bold]  [dim]{position}[/dim]")
-            lines += [f"  {escape(pane_command(pane))}" for pane in tab.panes] + [""]
+            yield tab_heading(tab), position, [pane_command(pane) for pane in tab.panes]
+
+
+def plan_text(windows: list[Window], positions: list[str]) -> Text:
+    """Return the commands that restore runs for the selected tabs, grouped by tab and with a
+    blank line between the tabs. The commands stay whole, for a copy from the terminal."""
+    lines = []
+    for heading, position, commands in planned_tabs(windows, positions):
+        lines.append(f"[bold]{escape(heading)}[/bold]  [dim]{position}[/dim]")
+        lines += [f"  {escape(command)}" for command in commands] + [""]
     return Text.from_markup("\n".join(lines).rstrip("\n"))
+
+
+def plan_view(windows: list[Window], positions: list[str]) -> Group:
+    """Return the commands of the selected tabs for a window of the restore screen. A long command
+    breaks at the width of the window and keeps its indent."""
+    parts: list[RenderableType] = []
+    for heading, position, commands in planned_tabs(windows, positions):
+        parts.append(Text.from_markup(f"[bold]{escape(heading)}[/bold]  [dim]{position}[/dim]"))
+        parts += [FoldedLine(command, 2) for command in commands] + [Text("")]
+    return Group(*parts[:-1])
 
 
 def print_plan(windows: list[Window], positions: list[str]) -> None:

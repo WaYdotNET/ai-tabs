@@ -1,7 +1,12 @@
 """The short text views of snapshots, tabs and sessions, shared by `show` and the restore screen."""
 
-from rich.console import Console
+from collections.abc import Iterator
+from dataclasses import dataclass
+
+from rich.cells import chop_cells
+from rich.console import Console, ConsoleOptions
 from rich.markup import escape
+from rich.text import Text
 
 from .agents import is_still_running
 from .config import HOME
@@ -10,6 +15,23 @@ from .palette import Palette
 from .store import PIN_LABELS, Snapshot, Summary
 
 console = Console()
+
+
+@dataclass(frozen=True)
+class FoldedLine:
+    """A line of text that breaks at the width of its box, not at its spaces, with an indent on each part.
+
+    Rich breaks text at spaces, which puts `cd` and a long folder on two lines.
+    """
+
+    text: str
+    indent: int
+
+    def __rich_console__(self, _console: Console, options: ConsoleOptions) -> Iterator[Text]:
+        """Yield the parts of the line, each one as wide as the box allows."""
+        width = max(options.max_width - self.indent, 1)
+        for part in chop_cells(self.text, width):
+            yield Text(" " * self.indent + part)
 
 
 def snapshot_markup(summary: Summary, newest: bool, colors: Palette) -> str:

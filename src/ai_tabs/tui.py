@@ -8,6 +8,7 @@ from dataclasses import dataclass
 
 from rich.console import Group, RenderableType
 from rich.markdown import Markdown
+from rich.table import Table
 from rich.text import Text
 from rich.theme import Theme as RichTheme
 from rich.theme import ThemeStackError
@@ -38,7 +39,7 @@ from .display import snapshot_markup, tab_markup, tab_matches
 from .logo import logo_compact
 from .models import Tab, Window, positioned_tabs
 from .palette import DARK, LIGHT, Palette, chosen_palette, other_palette
-from .plan import default_positions, plan_text, resolve_duplicates
+from .plan import default_positions, plan_view, resolve_duplicates
 
 KEYS = [
     ("↑ ↓", "move in the list"),
@@ -76,14 +77,14 @@ def textual_theme(colors: Palette) -> Theme:
                             "block-cursor-blurred-background": colors.panel})
 
 
-def keys_help(colors: Palette) -> Text:
-    """Return the list of keys, with the keys in the logo cyan."""
-    lines = Text()
+def keys_help(colors: Palette) -> Table:
+    """Return the list of keys, with the keys in the logo cyan. A long action wraps under itself."""
+    grid = Table.grid(padding=(0, 2))
+    grid.add_column(no_wrap=True, style=f"bold {colors.cyan}")
+    grid.add_column()
     for key, action in KEYS:
-        lines.append(f"{key:<10} ", style=f"bold {colors.cyan}")
-        lines.append(f"{action}\n")
-    lines.rstrip()
-    return lines
+        grid.add_row(key, action)
+    return grid
 
 
 class SettingsScreen(ModalScreen[bool]):
@@ -173,7 +174,7 @@ class InfoScreen(ModalScreen[None]):
 
     CSS = """
     InfoScreen { align: center middle; }
-    #info { width: 90%; height: 80%; border: round $primary; background: $surface; padding: 0 1; }
+    #info { width: 90%; height: auto; max-height: 80%; border: round $primary; background: $surface; padding: 0 1; }
     """
     BINDINGS = [Binding("escape,q", "dismiss", "close")]
 
@@ -382,7 +383,7 @@ class RestoreApp(App[RestoreChoice]):
         if not positions:
             self.notify("Select at least one tab (space).", severity="warning")
             return
-        self.push_screen(InfoScreen("Commands", plan_text(self.windows, positions)))
+        self.push_screen(InfoScreen("Commands", plan_view(self.windows, positions)))
 
     def action_changes(self) -> None:
         """Show the changes that the snapshot records: opened, closed and changed panes."""

@@ -4,6 +4,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-11-03
+
+### Fixed
+
+- The logo of the splash no longer stays visible behind the restore screen.
+- The keys window wraps a long action under its own column.
+- The commands window breaks a long command at the window width and keeps its indent.
+- The windows of the restore screen are only as tall as their text.
+
 ## [0.3.0] - 2026-11-03
 
 ### Added
@@ -56,7 +65,8 @@ First release.
 - Markdown export, daily backups, `config` command.
 - Dark and light theme.
 
-[Unreleased]: https://github.com/WaYdotNET/ai-tabs/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/WaYdotNET/ai-tabs/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/WaYdotNET/ai-tabs/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/WaYdotNET/ai-tabs/compare/v0.2.2...v0.3.0
 [0.2.2]: https://github.com/WaYdotNET/ai-tabs/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/WaYdotNET/ai-tabs/compare/v0.2.0...v0.2.1

@@ -34,9 +34,8 @@ def inline_image(data: bytes, width: int) -> str:
 def show_splash() -> None:
     """Show the logo in the middle of the terminal for a moment, before the restore screen opens.
 
-    The logo goes to the alternate screen, so it does not stay in the scrollback: the restore
-    screen clears it, and the terminal goes back to the normal screen when it closes. The font
-    and the size of the terminal do not change.
+    The logo goes to the alternate screen, so it does not stay in the scrollback. The font and
+    the size of the terminal do not change.
     """
     if not splash_allowed(dict(os.environ), sys.stdout.isatty()):
         return
@@ -47,5 +46,7 @@ def show_splash() -> None:
     sys.stdout.write(f"\033[?1049h\033[2J\033[?25l\033[{row};{column}H{inline_image(data, SPLASH_WIDTH)}")
     sys.stdout.flush()
     time.sleep(SPLASH_SECONDS)
-    sys.stdout.write("\033[?25h")
+    # iTerm2 keeps an inline image when other text covers its cells. Leaving the alternate screen
+    # discards it, so the restore screen does not show it through its own text.
+    sys.stdout.write("\033[2J\033[?1049l\033[?25h")
     sys.stdout.flush()
