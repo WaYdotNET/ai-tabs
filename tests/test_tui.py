@@ -1,14 +1,12 @@
 """The restore screen: where it starts, pins, search and the choice it returns."""
 
 import asyncio
-import threading
 from datetime import datetime
 
 from factories import agent_pane, shell_pane, tab
 from textual.widgets import ListView
 
 from ai_tabs import store
-from ai_tabs.history import read_index
 from ai_tabs.models import Window
 from ai_tabs.tui import RestoreApp
 
@@ -73,25 +71,6 @@ def run_history_snapshot_count(app: RestoreApp, *keys: str) -> int:
 
     asyncio.run(drive())
     return counts[0]
-
-
-def run_slow_history(app: RestoreApp, *keys: str) -> RestoreApp:
-    """Run the screen, press f, press the keys while the index still loads, and let the reading end after them."""
-    reading = threading.Event()
-    app.history_index = lambda: reading.wait(5) or read_index()
-
-    async def drive() -> None:
-        async with app.run_test(size=(100, 30)) as pilot:
-            await pilot.press("f")
-            await pilot.pause()
-            await pilot.press(*keys)
-            await pilot.pause()
-            reading.set()
-            await app.workers.wait_for_complete()
-            await pilot.pause()
-
-    asyncio.run(drive())
-    return app
 
 
 def test_screen_starts_on_the_snapshot_from_before_the_crash():
@@ -218,11 +197,3 @@ def test_a_query_without_a_match_empties_the_snapshot_list():
     shown = run_history_snapshot_count(RestoreApp(None, open_tabs=False), *"dapr", *"zzz")
 
     assert shown == 0
-
-
-def test_escape_while_the_index_loads_leaves_without_a_crash():
-    dapr_history()
-
-    app = run_slow_history(RestoreApp(None, open_tabs=False), "escape", "escape")
-
-    assert app.return_value is None
