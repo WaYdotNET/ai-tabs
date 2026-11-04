@@ -127,14 +127,24 @@ class HistoryScreen(Screen[HistoryPick | None]):
 
     def row_option(self, row: Row) -> Option:
         """Return the option of one row: the collapsed entry, or the line of one variant."""
-        entry = self.entries[row.entry]
         if row.variant is None:
-            # The blank last line separates the entries.
-            markup = entry_markup(entry, self.query_text(), self.palette) + "\n"
-            return Option(Text.from_markup(markup), id=str(row.entry))
+            return self.entry_option(row.entry)
+        return self.variant_option(row)
+
+    def entry_option(self, number: int) -> Option:
+        """Return the option of an entry. A collapsed entry ends with the blank line that separates the entries."""
+        entry = self.entries[number]
+        gap = "" if entry.key in self.expanded else "\n"
+        markup = entry_markup(entry, self.query_text(), self.palette) + gap
+        return Option(Text.from_markup(markup), id=str(number))
+
+    def variant_option(self, row: Row) -> Option:
+        """Return the option of one variant. The last variant carries the blank line of its entry."""
+        entry = self.entries[row.entry]
         last = row.variant == len(entry.variants) - 1
         markup = variant_markup(entry.variants[row.variant], last, self.query_text(), self.palette)
-        return Option(Text.from_markup(markup), id=f"{row.entry}/{row.variant}")
+        gap = "\n" if last else ""
+        return Option(Text.from_markup(markup + gap), id=f"{row.entry}/{row.variant}")
 
     def current_row(self) -> Row | None:
         """Return the highlighted row, or None when the result list shows no row."""

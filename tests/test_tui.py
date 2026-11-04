@@ -13,6 +13,12 @@ from ai_tabs.models import Window
 from ai_tabs.tui import RestoreApp
 
 NO_CHANGES = {"opened": [], "closed": [], "changed": []}
+EXPANDED_DAPR = [
+    "  DAPR  omp\n    dapr   was: Fz bus event api plan\n    /work · session 01a1156d"
+    "\n    11-02 15:09 → 16:16 · 2 snapshots",
+    "      ├ DAPR · dapr             11-02 16:16 → 16:16 · 1 snapshot",
+    "      └ DAPR · Fz bus event api plan 11-02 15:09 → 15:09 · 1 snapshot\n",
+]
 
 
 def three_tabs() -> list[Window]:
@@ -240,3 +246,11 @@ def test_the_titles_count_one_tab_and_one_snapshot_in_the_singular():
     titles = read_history(RestoreApp(None, open_tabs=False), tuple("fz"), border_titles)
 
     assert titles == ["History · 1 tab matches in 3 snapshots", "This tab · 1 snapshot"]
+
+
+def test_an_expanded_entry_ends_with_one_blank_line():
+    dapr_history()
+
+    lines = read_history(RestoreApp(None, open_tabs=False), (*"dapr", "escape", "right"), result_lines)
+
+    assert lines[:3] == EXPANDED_DAPR
