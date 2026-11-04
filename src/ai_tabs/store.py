@@ -124,6 +124,13 @@ def summaries(limit: int | None = None) -> list[Summary]:
         return [summary_from_row(row) for row in rows]
 
 
+def all_snapshots() -> list[Snapshot]:
+    """Return every snapshot with its windows and changes, newest first."""
+    with database() as db:
+        rows = db.execute(f"{SELECT_SNAPSHOT} ORDER BY id DESC")
+        return [snapshot_from_row(row) for row in rows]
+
+
 def set_pin(wanted: str, reason: str | None) -> bool:
     """Pin a snapshot with a reason, or unpin it with None. Return False when the ID is unknown."""
     with database() as db:
