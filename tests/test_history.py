@@ -3,9 +3,11 @@
 from datetime import datetime
 
 from factories import agent_pane, shell_pane, tab
+from rich.text import Text
 
-from ai_tabs import history, store
+from ai_tabs import display, history, store
 from ai_tabs.models import Agent, Pane, Tab, Window
+from ai_tabs.palette import DARK
 
 NO_CHANGES = {"opened": [], "closed": [], "changed": []}
 
@@ -104,3 +106,60 @@ def test_two_agents_without_a_session_id_are_two_entries():
         tab(Pane("omp", "/dev/ttys002", "/work", agent_b)),
     ]))
     assert len(history.search(index, "dapr")) == 2
+
+
+def test_period_on_one_day_shows_the_day_once():
+    assert display.period(datetime(2026, 11, 2, 15, 9, 4), datetime(2026, 11, 2, 21, 48, 18)) == "11-02 15:09 → 21:48"
+
+
+def test_period_over_two_days_shows_both_days():
+    moment = display.period(datetime(2026, 11, 2, 22, 26, 26), datetime(2026, 11, 3, 12, 28, 51))
+    assert moment == "11-02 22:26 → 11-03 12:28"
+
+
+def test_highlight_marks_a_word_without_regard_to_case():
+    assert display.highlight("DAPR plan", "dapr", "#fff") == "[bold underline #fff]DAPR[/] plan"
+
+
+def test_highlight_escapes_markup_in_the_text():
+    assert display.highlight("[wip] dapr", "dapr", "#fff") == "\\[wip] [bold underline #fff]dapr[/]"
+
+
+def test_agent_entry_lists_the_older_titles_newest_first():
+    index = index_of(
+        (datetime(2026, 11, 2, 10, 0, 0), [tab(agent_pane("s1", "a"), title="DAPR")]),
+        (datetime(2026, 11, 2, 11, 0, 0), [tab(agent_pane("s1", "b"), title="DAPR")]),
+        (datetime(2026, 11, 2, 12, 0, 0), [tab(agent_pane("s1", "c"), title="DAPR")]),
+    )
+    entry = history.search(index, "dapr")[0]
+
+    lines = Text.from_markup(display.entry_markup(entry, "dapr", DARK)).plain.split("\n")
+
+    assert lines[1] == "    c   was: b, a"
+
+
+def test_entry_shows_the_pin_only_when_its_newest_snapshot_is_pinned():
+    index = index_of(
+        (datetime(2026, 11, 2, 10, 0, 0), [tab(agent_pane("s1", "dapr"))]),
+        (datetime(2026, 11, 2, 11, 0, 0), [tab(agent_pane("s1", "dapr"))]),
+    )
+    older_id = index.occurrences[-1].summary.id
+
+    store.set_pin(older_id, "manual")
+    index = history.read_index()
+    entry = history.search(index, "dapr")[0]
+
+    assert "📌" not in Text.from_markup(display.entry_markup(entry, "dapr", DARK)).plain
+
+
+def test_shell_entry_lists_its_distinct_names_newest_first():
+    index = index_of(
+        (datetime(2026, 11, 2, 10, 0, 0), [tab(Pane("zsh", "/dev/ttys001", "/dapr"))]),
+        (datetime(2026, 11, 2, 11, 0, 0), [tab(Pane("pulumi", "/dev/ttys001", "/dapr"))]),
+        (datetime(2026, 11, 2, 12, 0, 0), [tab(Pane("zsh", "/dev/ttys001", "/dapr"))]),
+    )
+    entry = history.search(index, "dapr")[0]
+
+    lines = Text.from_markup(display.entry_markup(entry, "dapr", DARK)).plain.split("\n")
+
+    assert lines[1] == "    /dapr · names: zsh, pulumi"
