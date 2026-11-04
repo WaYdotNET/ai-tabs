@@ -4,7 +4,7 @@ import asyncio
 from datetime import datetime
 
 from factories import agent_pane, shell_pane, tab
-from textual.widgets import ListView
+from textual.widgets import OptionList
 
 from ai_tabs import store
 from ai_tabs.models import Window
@@ -67,7 +67,7 @@ def run_history_snapshot_count(app: RestoreApp, *keys: str) -> int:
             await pilot.pause()
             await pilot.press(*keys)
             await pilot.pause()
-            counts.append(len(app.screen.query_one("#snapshots", ListView).children))
+            counts.append(app.screen.query_one("#snapshots", OptionList).option_count)
 
     asyncio.run(drive())
     return counts[0]

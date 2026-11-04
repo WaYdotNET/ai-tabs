@@ -9,7 +9,7 @@ from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
-from textual.widgets import Footer, Input, Label, ListItem, ListView, OptionList
+from textual.widgets import Footer, Input, OptionList
 from textual.widgets.option_list import Option
 
 from .display import entry_markup, snapshot_markup, variant_markup
@@ -37,7 +37,6 @@ class HistoryScreen(Screen[HistoryPick | None]):
     #right { border: round $primary; }
     #results { height: 1fr; border: none; text-wrap: nowrap; text-overflow: ellipsis; }
     #filter { border: none; height: 1; padding: 0 1; }
-    ListItem { padding: 0 1 1 1; }
     """
     BINDINGS = [
         Binding("enter", "restore", "restore", priority=True),
@@ -62,7 +61,7 @@ class HistoryScreen(Screen[HistoryPick | None]):
     def compose(self) -> ComposeResult:
         """Lay out the snapshot list, the search field and the result list."""
         with Horizontal():
-            yield ListView(id="snapshots")
+            yield OptionList(id="snapshots")
             with Vertical(id="right"):
                 yield Input(placeholder="> search the tabs of all the snapshots", id="filter")
                 yield OptionList(id="results")
@@ -161,14 +160,15 @@ class HistoryScreen(Screen[HistoryPick | None]):
 
     def snapshot_at(self, summaries: tuple[Summary, ...]) -> Summary | None:
         """Return the snapshot that the left list highlights, or the newest one when the index is too high."""
-        index = self.query_one("#snapshots", ListView).index or 0
+        index = self.query_one("#snapshots", OptionList).highlighted or 0
         if not summaries:
             return None
         return summaries[index] if index < len(summaries) else summaries[0]
 
-    def snapshot_items(self) -> list[ListItem]:
-        """Return one entry of the snapshot list for each snapshot of the highlighted group."""
-        return [ListItem(Label(Text.from_markup(snapshot_markup(summary, False, self.palette))))
+    def snapshot_options(self) -> list[Option]:
+        """Return one option of the snapshot list for each snapshot of the highlighted group."""
+        # The blank last line separates the snapshots, as in the restore screen list.
+        return [Option(Text.from_markup(snapshot_markup(summary, False, self.palette) + "\n"), id=summary.id)
                 for summary in self.summaries]
 
     def paint_titles(self) -> None:
@@ -185,23 +185,22 @@ class HistoryScreen(Screen[HistoryPick | None]):
             return ""
         return f"{row.entry + 1} of {len(self.entries)} · restore from {summary.created_at:%H:%M:%S %m-%d}"
 
-    async def show_snapshots(self) -> None:
+    def show_snapshots(self) -> None:
         """Fill the snapshot list with the snapshots of the highlighted group, newest first."""
         row = self.current_row()
         self.summaries = list(self.group_of(row).summaries) if row is not None else []
-        snapshots = self.query_one("#snapshots", ListView)
-        await snapshots.clear()
-        await snapshots.extend(self.snapshot_items())
-        snapshots.index = 0 if self.summaries else None
+        snapshots = self.query_one("#snapshots", OptionList)
+        snapshots.clear_options()
+        snapshots.add_options(self.snapshot_options())
+        snapshots.highlighted = 0 if self.summaries else None
         self.paint_titles()
 
-    async def on_option_list_option_highlighted(self, event: OptionList.OptionHighlighted) -> None:
-        """Show the snapshots of the entry or of the variant that the result list highlights."""
-        await self.show_snapshots()
-
-    def on_list_view_highlighted(self, event: ListView.Highlighted) -> None:
-        """Show the snapshot that Enter uses in the subtitle of the right panel."""
-        self.query_one("#right").border_subtitle = self.restore_line()
+    def on_option_list_option_highlighted(self, event: OptionList.OptionHighlighted) -> None:
+        """Follow the highlight: the result list changes the snapshots, the snapshot list changes the subtitle."""
+        if event.option_list.id == "snapshots":
+            self.query_one("#right").border_subtitle = self.restore_line()
+            return
+        self.show_snapshots()
 
     def on_input_changed(self, event: Input.Changed) -> None:
         """Search again while the text of the search field changes."""
