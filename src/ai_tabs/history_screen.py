@@ -12,7 +12,7 @@ from textual.screen import Screen
 from textual.widgets import Footer, Input, OptionList
 from textual.widgets.option_list import Option
 
-from .display import counted_snapshots, entry_markup, snapshot_markup, variant_markup
+from .display import counted_snapshots, entry_markup, matched_tabs, snapshot_markup, variant_markup
 from .history import Entry, HistoryIndex, HistoryPick, Variant, restore_position, search
 from .palette import Palette
 from .store import Summary
@@ -174,7 +174,8 @@ class HistoryScreen(Screen[HistoryPick | None]):
     def paint_titles(self) -> None:
         """Show on the borders the number of matches, the snapshots of the group and the restore target."""
         count = self.history.snapshot_count if self.history else 0
-        self.query_one("#right").border_title = f"History · {len(self.entries)} tabs match in {count} snapshots"
+        matches = f"{matched_tabs(len(self.entries))} in {counted_snapshots(count)}"
+        self.query_one("#right").border_title = f"History · {matches}"
         self.query_one("#right").border_subtitle = self.restore_line()
         self.query_one("#snapshots").border_title = f"This tab · {counted_snapshots(len(self.summaries))}"
 

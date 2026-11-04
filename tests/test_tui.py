@@ -64,6 +64,11 @@ def result_lines(screen: Screen) -> list[str]:
     return [results.get_option_at_index(index).prompt.plain for index in range(results.option_count)]
 
 
+def border_titles(screen: Screen) -> list[str]:
+    """Return the title of the right panel and the title of the snapshot list."""
+    return [screen.query_one("#right").border_title, screen.query_one("#snapshots").border_title]
+
+
 def snapshot_ids(screen: Screen) -> list[str]:
     """Return the snapshot ID of each option of the left list."""
     snapshots = screen.query_one("#snapshots", OptionList)
@@ -227,3 +232,11 @@ def test_down_on_the_results_shows_the_snapshots_of_the_second_entry():
     shown = read_history(RestoreApp(None, open_tabs=False), (*"dapr", "escape", "down"), snapshot_ids)
 
     assert shown == ["2026-11-02/22-26-26"]
+
+
+def test_the_titles_count_one_tab_and_one_snapshot_in_the_singular():
+    dapr_history()
+
+    titles = read_history(RestoreApp(None, open_tabs=False), tuple("fz"), border_titles)
+
+    assert titles == ["History · 1 tab matches in 3 snapshots", "This tab · 1 snapshot"]

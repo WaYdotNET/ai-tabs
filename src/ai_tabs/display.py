@@ -123,6 +123,11 @@ def counted_snapshots(count: int) -> str:
     return "1 snapshot" if count == 1 else f"{count} snapshots"
 
 
+def matched_tabs(count: int) -> str:
+    """Return the count of matching tabs with the right words: `1 tab matches` or `N tabs match`."""
+    return "1 tab matches" if count == 1 else f"{count} tabs match"
+
+
 def _word_spans(lower_text: str, word: str) -> list[tuple[int, int]]:
     """Return every match span of one word in a lower-case text."""
     spans = []
