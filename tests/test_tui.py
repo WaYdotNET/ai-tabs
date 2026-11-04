@@ -1,9 +1,11 @@
 """The restore screen: where it starts, pins, search and the choice it returns."""
 
 import asyncio
+from collections.abc import Callable
 from datetime import datetime
 
 from factories import agent_pane, shell_pane, tab
+from textual.screen import Screen
 from textual.widgets import OptionList
 
 from ai_tabs import store
@@ -56,9 +58,21 @@ def run_history_keys(app: RestoreApp, *keys: str) -> RestoreApp:
     return app
 
 
-def run_history_snapshot_count(app: RestoreApp, *keys: str) -> int:
-    """Run the screen, press f, wait for the history, press the keys, and return the size of the left list."""
-    counts: list[int] = []
+def result_lines(screen: Screen) -> list[str]:
+    """Return the plain text of each option of the result list."""
+    results = screen.query_one("#results", OptionList)
+    return [results.get_option_at_index(index).prompt.plain for index in range(results.option_count)]
+
+
+def snapshot_ids(screen: Screen) -> list[str]:
+    """Return the snapshot ID of each option of the left list."""
+    snapshots = screen.query_one("#snapshots", OptionList)
+    return [snapshots.get_option_at_index(index).id for index in range(snapshots.option_count)]
+
+
+def read_history(app: RestoreApp, keys: tuple[str, ...], read: Callable[[Screen], list[str]]) -> list[str]:
+    """Run the screen, press f, wait for the history, press the keys, and read the screen that is open."""
+    values: list[list[str]] = []
 
     async def drive() -> None:
         async with app.run_test(size=(100, 30)) as pilot:
@@ -67,10 +81,10 @@ def run_history_snapshot_count(app: RestoreApp, *keys: str) -> int:
             await pilot.pause()
             await pilot.press(*keys)
             await pilot.pause()
-            counts.append(app.screen.query_one("#snapshots", OptionList).option_count)
+            values.append(read(app.screen))
 
     asyncio.run(drive())
-    return counts[0]
+    return values[0]
 
 
 def test_screen_starts_on_the_snapshot_from_before_the_crash():
@@ -194,6 +208,22 @@ def test_enter_without_results_keeps_the_screen_open():
 def test_a_query_without_a_match_empties_the_snapshot_list():
     dapr_history()
 
-    shown = run_history_snapshot_count(RestoreApp(None, open_tabs=False), *"dapr", *"zzz")
+    shown = read_history(RestoreApp(None, open_tabs=False), (*"dapr", *"zzz"), snapshot_ids)
 
-    assert shown == 0
+    assert shown == []
+
+
+def test_a_query_of_spaces_shows_the_hint():
+    dapr_history()
+
+    lines = read_history(RestoreApp(None, open_tabs=False), ("space", "space"), result_lines)
+
+    assert lines == ["Type to search all the snapshots."]
+
+
+def test_down_on_the_results_shows_the_snapshots_of_the_second_entry():
+    dapr_history()
+
+    shown = read_history(RestoreApp(None, open_tabs=False), (*"dapr", "escape", "down"), snapshot_ids)
+
+    assert shown == ["2026-11-02/22-26-26"]

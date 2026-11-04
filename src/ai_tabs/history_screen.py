@@ -12,7 +12,7 @@ from textual.screen import Screen
 from textual.widgets import Footer, Input, OptionList
 from textual.widgets.option_list import Option
 
-from .display import entry_markup, snapshot_markup, variant_markup
+from .display import counted_snapshots, entry_markup, snapshot_markup, variant_markup
 from .history import Entry, HistoryIndex, HistoryPick, Variant, restore_position, search
 from .palette import Palette
 from .store import Summary
@@ -121,7 +121,7 @@ class HistoryScreen(Screen[HistoryPick | None]):
         """Return the line that stands for an empty result list. Enter ignores a disabled option."""
         if self.history is None:
             return [Option(Text(READING), disabled=True)]
-        if not self.query_text():
+        if not self.query_text().strip():
             return [Option(Text(TYPE_QUERY), disabled=True)]
         return []
 
@@ -176,7 +176,7 @@ class HistoryScreen(Screen[HistoryPick | None]):
         count = self.history.snapshot_count if self.history else 0
         self.query_one("#right").border_title = f"History · {len(self.entries)} tabs match in {count} snapshots"
         self.query_one("#right").border_subtitle = self.restore_line()
-        self.query_one("#snapshots").border_title = f"This tab · {len(self.summaries)} snapshots"
+        self.query_one("#snapshots").border_title = f"This tab · {counted_snapshots(len(self.summaries))}"
 
     def restore_line(self) -> str:
         """Return the subtitle: the place of the entry in the results, and the snapshot that Enter uses."""

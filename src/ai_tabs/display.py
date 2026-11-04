@@ -118,6 +118,11 @@ def period(first: datetime, last: datetime) -> str:
     return f"{start} → {end}"
 
 
+def counted_snapshots(count: int) -> str:
+    """Return the count of snapshots with the right word: `1 snapshot` or `N snapshots`."""
+    return "1 snapshot" if count == 1 else f"{count} snapshots"
+
+
 def _word_spans(lower_text: str, word: str) -> list[tuple[int, int]]:
     """Return every match span of one word in a lower-case text."""
     spans = []
@@ -211,7 +216,7 @@ def _period_line(entry: Entry, colors: Palette) -> str:
     summaries = entry.summaries
     newest_summary, oldest_summary = summaries[0], summaries[-1]
     period_text = period(oldest_summary.created_at, newest_summary.created_at)
-    line = f"    [{colors.cyan}]{period_text}[/][dim] · {len(summaries)} snapshots[/dim]"
+    line = f"    [{colors.cyan}]{period_text}[/][dim] · {counted_snapshots(len(summaries))}[/dim]"
     if newest_summary.pinned:
         line += f"[dim] · last 📌 {PIN_LABELS[newest_summary.pinned]}[/dim]"
     return line
@@ -236,7 +241,7 @@ def variant_markup(variant: Variant, last: bool, query: str, colors: Palette) ->
     text = " · ".join(parts).ljust(24)
     summaries = variant.summaries
     period_text = period(summaries[-1].created_at, summaries[0].created_at)
-    line = f"[{colors.cyan}]{period_text}[/][dim] · {len(summaries)} snapshots[/dim]"
+    line = f"[{colors.cyan}]{period_text}[/][dim] · {counted_snapshots(len(summaries))}[/dim]"
     return f"      {marker} {highlight(text, query, colors.gold)}{line}"
 
 
