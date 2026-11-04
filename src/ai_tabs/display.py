@@ -211,7 +211,7 @@ def _period_line(entry: Entry, colors: Palette) -> str:
     summaries = entry.summaries
     newest_summary, oldest_summary = summaries[0], summaries[-1]
     period_text = period(oldest_summary.created_at, newest_summary.created_at)
-    line = f"[{colors.cyan}]{period_text}[/][dim] · {len(summaries)} snapshots[/dim]"
+    line = f"    [{colors.cyan}]{period_text}[/][dim] · {len(summaries)} snapshots[/dim]"
     if newest_summary.pinned:
         line += f"[dim] · last 📌 {PIN_LABELS[newest_summary.pinned]}[/dim]"
     return line
@@ -232,7 +232,8 @@ def entry_markup(entry: Entry, query: str, colors: Palette) -> str:
 def variant_markup(variant: Variant, last: bool, query: str, colors: Palette) -> str:
     """Return one line of an expanded entry: the variant text, its period, and its snapshot count."""
     marker = "└" if last else "├"
-    text = " · ".join(part for part in variant.text if part).ljust(24)
+    parts = dict.fromkeys(part for part in variant.text if part)
+    text = " · ".join(parts).ljust(24)
     summaries = variant.summaries
     period_text = period(summaries[-1].created_at, summaries[0].created_at)
     line = f"[{colors.cyan}]{period_text}[/][dim] · {len(summaries)} snapshots[/dim]"

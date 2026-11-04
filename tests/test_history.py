@@ -163,3 +163,25 @@ def test_shell_entry_lists_its_distinct_names_newest_first():
     lines = Text.from_markup(display.entry_markup(entry, "dapr", DARK)).plain.split("\n")
 
     assert lines[1] == "    /dapr · names: zsh, pulumi"
+
+
+def test_period_line_has_the_same_indent_as_the_lines_above_it():
+    index = index_of(
+        (datetime(2026, 11, 2, 10, 0, 0), [tab(Pane("zsh", "/dev/ttys001", "/dapr"))]),
+        (datetime(2026, 11, 2, 11, 0, 0), [tab(Pane("zsh", "/dev/ttys001", "/dapr"))]),
+    )
+    entry = history.search(index, "dapr")[0]
+
+    lines = Text.from_markup(display.entry_markup(entry, "dapr", DARK)).plain.split("\n")
+
+    assert lines[-1] == "    11-02 10:00 → 11:00 · 2 snapshots"
+
+
+def test_variant_markup_shows_each_distinct_part_once():
+    index = index_of((datetime(2026, 11, 2, 10, 0, 0), [tab(Pane("zsh", "/dev/ttys001", "/dapr"))]))
+    entry = history.search(index, "dapr")[0]
+    variant = entry.variants[0]
+
+    line = Text.from_markup(display.variant_markup(variant, True, "dapr", DARK)).plain
+
+    assert line == "      └ zsh                     11-02 10:00 → 10:00 · 1 snapshots"
