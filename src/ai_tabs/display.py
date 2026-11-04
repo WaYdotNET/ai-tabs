@@ -243,7 +243,8 @@ def variant_markup(variant: Variant, last: bool, query: str, colors: Palette) ->
     """Return one line of an expanded entry: the variant text, its period, and its snapshot count."""
     marker = "└" if last else "├"
     parts = dict.fromkeys(part for part in variant.text if part)
-    text = " · ".join(parts).ljust(24)
+    # The pad keeps one space after a text that is already 24 characters wide.
+    text = " · ".join(parts).ljust(23) + " "
     summaries = variant.summaries
     period_text = period(summaries[-1].created_at, summaries[0].created_at)
     line = f"[{colors.cyan}]{period_text}[/][dim] · {counted_snapshots(len(summaries))}[/dim]"

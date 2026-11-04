@@ -288,3 +288,13 @@ def test_variant_markup_shows_each_distinct_part_once():
     line = Text.from_markup(display.variant_markup(variant, True, "dapr", DARK)).plain
 
     assert line == "      └ zsh                     11-02 10:00 → 10:00 · 1 snapshot"
+
+
+def test_a_long_variant_text_keeps_one_space_before_its_period():
+    moment = datetime(2026, 11, 2, 15, 9, 4)
+    index = index_of((moment, [tab(agent_pane("s1", "Fz bus event api plan"), title="DAPR")]))
+    variant = history.search(index, "dapr")[0].variants[0]
+
+    line = Text.from_markup(display.variant_markup(variant, True, "dapr", DARK)).plain
+
+    assert line == "      └ DAPR · Fz bus event api plan 11-02 15:09 → 15:09 · 1 snapshot"
