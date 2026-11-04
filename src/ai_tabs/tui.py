@@ -36,6 +36,8 @@ from .config import (
 )
 from .diff import render_changes
 from .display import snapshot_markup, tab_markup, tab_matches
+from .history import HistoryIndex, HistoryPick, read_index
+from .history_screen import HistoryScreen
 from .layouts import Layout
 from .logo import logo_compact
 from .models import Tab, Window, positioned_tabs
@@ -53,6 +55,8 @@ KEYS = [
     ("space", "select or clear the tab"),
     ("a", "select all the visible tabs, or none"),
     ("/", "search tabs, sessions and folders (esc leaves the search)"),
+    ("f", "search the tabs of all the snapshots: → shows the variants, tab picks the snapshot, "
+          "enter restores (esc or f leaves)"),
     ("enter", "restore the selected tabs"),
     ("r", f"resume sessions of the last {RECENT_SESSION_DAYS} days that do not run now (space selects several)"),
     ("l", "open a named layout"),
@@ -226,6 +230,7 @@ class RestoreApp(App[RestoreChoice]):
         Binding("r", "resume", "resume"),
         Binding("l", "layouts", "layout"),
         Binding("slash", "search", "search"),
+        Binding("f", "history", "history"),
         Binding("c", "commands", "commands"),
         Binding("d", "dry_run", "dry run", show=False),
         Binding("h", "changes", "changes"),
@@ -255,6 +260,7 @@ class RestoreApp(App[RestoreChoice]):
         self.windows: list[Window] = []
         self.tabs: list[tuple[str, Tab]] = []
         self.checked: dict[str, bool] = {}
+        self.history: HistoryIndex | None = None
 
     def compose(self) -> ComposeResult:
         """Lay out the logo bar, the snapshot list, the search field and the tab list."""
@@ -286,8 +292,8 @@ class RestoreApp(App[RestoreChoice]):
         return ids.index(self.snapshot_id) if self.snapshot_id in ids else 0
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool:
-        """Turn off the keys of the restore screen while a window is open over it."""
-        return not isinstance(self.screen, ModalScreen)
+        """Turn off the keys of the restore screen while another screen is open over it."""
+        return len(self.screen_stack) == 1
 
     def on_mount(self) -> None:
         """Use the colors of the `theme` setting, show the starting snapshot and focus its tabs."""
@@ -452,8 +458,12 @@ class RestoreApp(App[RestoreChoice]):
         self.call_from_thread(self.after_snapshot, (result.stdout or result.stderr).strip())
 
     async def after_snapshot(self, message: str) -> None:
-        """Show the result of the snapshot and reload the snapshot list."""
+        """Show the result of the snapshot and reload the snapshot list.
+
+        The new snapshot makes the history index stale, so the next `f` reads the snapshots again.
+        """
         self.notify(message or "Snapshot done.")
+        self.history = None
         await self.reload_snapshot_list()
 
     async def reload_snapshot_list(self) -> None:
@@ -487,6 +497,24 @@ class RestoreApp(App[RestoreChoice]):
             self.notify("Select at least one tab (space).", severity="warning")
             return
         self.finish_with(RestoreChoice(self.snapshot_id, positions, self.open_tabs))
+
+    def history_index(self) -> HistoryIndex:
+        """Return the index of every tab of every snapshot, and read it once when it is not in memory.
+
+        `HistoryScreen` calls this in a worker thread, so it only reads the database.
+        """
+        if self.history is None:
+            self.history = read_index()
+        return self.history
+
+    def action_history(self) -> None:
+        """Search the tabs of all the snapshots."""
+        self.push_screen(HistoryScreen(self.history_index, self.palette), self.after_history)
+
+    def after_history(self, pick: HistoryPick | None) -> None:
+        """Close the screen with the tab that the history search picked."""
+        if pick is not None:
+            self.finish_with(RestoreChoice(pick.snapshot_id, [pick.position], self.open_tabs))
 
     def action_resume(self) -> None:
         """Show the recent sessions that do not run now, to resume some of them."""

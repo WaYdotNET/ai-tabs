@@ -54,6 +54,7 @@ Run `ai-tabs` without a command to open the restore screen. In iTerm2, the logo 
 - The screen uses the colors of the logo, in a dark and a light theme. The `theme` setting chooses one, and `auto` (the default) follows the macOS appearance. Press `t` to switch: it saves the choice as `theme = "dark"` or `theme = "light"` in the configuration file. The top bar shows the small logo. Press `?` for the list of all the keys.
 - The left panel shows the snapshots, newest first. 📌 marks a pinned snapshot. A gold line shows how many panes opened and closed.
 - The right panel shows the tabs of the selected snapshot. A bar in the tab color comes first, then the tab title, the session title and the folder. A green `●` marks an agent session that still runs.
+- The `f` key searches the tabs of all the snapshots, not only of the selected one. One entry groups the copies of the same tab, with its titles over time and its period, so you can find an old tab and restore it from the snapshot you pick.
 - After a reboot or a crash, the screen starts on the last snapshot from before it, until you restore it.
 
 | Key | Action |
@@ -63,6 +64,7 @@ Run `ai-tabs` without a command to open the restore screen. In iTerm2, the logo 
 | `space` | Select or clear a tab |
 | `a` | Select all the visible tabs, or none |
 | `/` | Search tabs, sessions and folders. `esc` leaves the search |
+| `f` | Search the tabs of all the snapshots. One entry groups the copies of a tab. `→` shows its titles over time, `tab` picks the snapshot, `enter` restores the tab. `esc` or `f` leaves |
 | `enter` | Restore the selected tabs. In iTerm2, it asks first: new windows, or new tabs in this window |
 | `c` | Show the ai-tabs commands, as `ai-tabs --help` |
 | `d` | Dry run: show the commands that restore runs for the selected tabs |
