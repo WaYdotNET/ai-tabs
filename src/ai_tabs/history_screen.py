@@ -41,11 +41,11 @@ class HistoryScreen(Screen[HistoryPick | None]):
     """
     BINDINGS = [
         Binding("enter", "restore", "restore", priority=True),
-        Binding("tab,shift+tab", "switch_panel", "switch panel", show=False, priority=True),
+        Binding("tab,shift+tab", "switch_panel", "pick snapshot", priority=True),
         Binding("right", "expand", "variants", show=False),
         Binding("left", "collapse", "collapse", show=False),
         Binding("f", "dismiss(None)", "back"),
-        Binding("escape", "leave", "back", show=False),
+        Binding("escape", "leave", "leave"),
     ]
 
     def __init__(self, load: Callable[[], HistoryIndex], colors: Palette) -> None:
@@ -81,7 +81,12 @@ class HistoryScreen(Screen[HistoryPick | None]):
         self.app.call_from_thread(self.after_index, index)
 
     def after_index(self, index: HistoryIndex) -> None:
-        """Keep the index and show the results of the current query."""
+        """Keep the index and show the results of the current query.
+
+        The worker ends after a fast escape too, and then the screen is gone.
+        """
+        if not self.is_attached:
+            return
         self.history = index
         self.show_results()
 
@@ -109,6 +114,9 @@ class HistoryScreen(Screen[HistoryPick | None]):
         results.add_options([self.row_option(row) for row in self.rows] or self.hint_options())
         results.highlighted = highlighted if self.rows else None
         self.paint_titles()
+        if not self.rows:
+            # An empty list highlights nothing, and a missing highlight posts no message.
+            self.call_next(self.show_snapshots)
 
     def hint_options(self) -> list[Option]:
         """Return the line that stands for an empty result list. Enter ignores a disabled option."""
@@ -142,9 +150,21 @@ class HistoryScreen(Screen[HistoryPick | None]):
         return entry if row.variant is None else entry.variants[row.variant]
 
     def current_snapshot(self) -> Summary | None:
-        """Return the highlighted snapshot of the left list."""
+        """Return the highlighted snapshot of the highlighted group.
+
+        The snapshots come from the group, because the left list fills later.
+        """
+        row = self.current_row()
+        if row is None:
+            return None
+        return self.snapshot_at(self.group_of(row).summaries)
+
+    def snapshot_at(self, summaries: tuple[Summary, ...]) -> Summary | None:
+        """Return the snapshot that the left list highlights, or the newest one when the index is too high."""
         index = self.query_one("#snapshots", ListView).index or 0
-        return self.summaries[index] if index < len(self.summaries) else None
+        if not summaries:
+            return None
+        return summaries[index] if index < len(summaries) else summaries[0]
 
     def snapshot_items(self) -> list[ListItem]:
         """Return one entry of the snapshot list for each snapshot of the highlighted group."""
@@ -156,7 +176,7 @@ class HistoryScreen(Screen[HistoryPick | None]):
         count = self.history.snapshot_count if self.history else 0
         self.query_one("#right").border_title = f"History · {len(self.entries)} tabs match in {count} snapshots"
         self.query_one("#right").border_subtitle = self.restore_line()
-        self.query_one("#snapshots").border_title = f"Snapshots with this tab · {len(self.summaries)}"
+        self.query_one("#snapshots").border_title = f"This tab · {len(self.summaries)} snapshots"
 
     def restore_line(self) -> str:
         """Return the subtitle: the place of the entry in the results, and the snapshot that Enter uses."""
