@@ -4,6 +4,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-04
+
 ### Added
 
 - The `f` key searches the tabs of all the snapshots, and restores a tab from the snapshot you pick.
@@ -98,7 +100,8 @@ First release.
 - Markdown export, daily backups, `config` command.
 - Dark and light theme.
 
-[Unreleased]: https://github.com/WaYdotNET/ai-tabs/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/WaYdotNET/ai-tabs/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/WaYdotNET/ai-tabs/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/WaYdotNET/ai-tabs/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/WaYdotNET/ai-tabs/compare/v0.3.2...v0.4.0
 [0.3.2]: https://github.com/WaYdotNET/ai-tabs/compare/v0.3.1...v0.3.2

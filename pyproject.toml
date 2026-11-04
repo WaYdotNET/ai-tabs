@@ -1,6 +1,6 @@
 [project]
 name = "ai-tabs"
-version = "0.4.1"
+version = "0.5.0"
 description = "Save and restore iTerm2 tabs with their omp, Claude Code, opencode and hermes sessions."
 readme = "README.md"
 license = "MIT"
