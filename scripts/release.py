@@ -33,6 +33,8 @@ INSTALL_ATTEMPTS = 10
 INSTALL_RETRY_SECONDS = 30
 RUN_APPEAR_POLLS = 20
 RUN_APPEAR_SECONDS = 6
+RUN_POLLS = 180
+RUN_POLL_SECONDS = 10
 
 
 class ReleaseError(Exception):
@@ -197,13 +199,36 @@ def release_run(tag: str) -> dict:
     raise ReleaseError(f"GitHub lists no Release workflow run for {tag}.")
 
 
+def run_state(run_id: int) -> dict | None:
+    """Return the status and the conclusion of a workflow run, or None when `gh` fails.
+
+    A failed `gh` call is often a temporary GitHub API error, so the caller asks again.
+    """
+    argv = ["gh", "run", "view", str(run_id), "--json", "status,conclusion"]
+    result = subprocess.run(argv, cwd=ROOT, capture_output=True, text=True, check=False)
+    return json.loads(result.stdout) if result.returncode == 0 else None
+
+
+def run_conclusion(run_id: int) -> str:
+    """Wait until a workflow run completes and return its conclusion.
+
+    `gh run watch --exit-status` is not used: it exits with an error when one of its own API calls
+    fails, also while the run continues.
+    """
+    for _ in range(RUN_POLLS):
+        state = run_state(run_id)
+        if state is not None and state["status"] == "completed":
+            return state["conclusion"]
+        time.sleep(RUN_POLL_SECONDS)
+    raise ReleaseError(f"The workflow run {run_id} did not complete in {RUN_POLLS * RUN_POLL_SECONDS} seconds.")
+
+
 def wait_for_release_workflow(new: str) -> None:
-    """Wait for the Release workflow of v<new>, and stop with its URL when it fails."""
+    """Wait for the Release workflow of v<new>, and stop with its URL when it does not succeed."""
     workflow = release_run(f"v{new}")
-    try:
-        run(["gh", "run", "watch", str(workflow["databaseId"]), "--exit-status"])
-    except ReleaseError as error:
-        raise ReleaseError(f"The Release workflow failed: {workflow['url']}") from error
+    conclusion = run_conclusion(workflow["databaseId"])
+    if conclusion != "success":
+        raise ReleaseError(f"The Release workflow ended with {conclusion!r}: {workflow['url']}")
     step(f"Release workflow passed: {workflow['url']}")
 
 

@@ -4,6 +4,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- `scripts/release.py` no longer stops with "The Release workflow failed" while the workflow continues. It asks GitHub for the state of the run and does not use the exit code of `gh run watch`.
+
 ## [0.6.0] - 2026-11-10
 
 ### Added

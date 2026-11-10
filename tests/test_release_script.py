@@ -1,6 +1,7 @@
-"""The changelog text change and the version math of scripts/release.py."""
+"""The changelog text change, the version math and the workflow wait of scripts/release.py."""
 
 import importlib.util
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -113,3 +114,41 @@ def test_bumped_version_major_increments_the_first_number_and_resets_the_rest() 
 def test_bumped_version_refuses_an_unknown_part() -> None:
     with pytest.raises(release.ReleaseError, match="Unknown part"):
         release.bumped_version("0.3.2", "build")
+
+
+def gh_answers(monkeypatch: pytest.MonkeyPatch, answers: list[tuple[int, str]]) -> None:
+    """Make each `gh` call return the next exit code and stdout, and make the waits instant."""
+    replies = iter(answers)
+
+    def fake_run(argv: list[str], **_kwargs: object) -> subprocess.CompletedProcess:
+        code, stdout = next(replies)
+        return subprocess.CompletedProcess(argv, code, stdout, "HTTP 504")
+
+    monkeypatch.setattr(release.subprocess, "run", fake_run)
+    monkeypatch.setattr(release.time, "sleep", lambda _seconds: None)
+
+
+def test_run_conclusion_waits_through_a_failed_gh_call_while_the_run_continues(monkeypatch) -> None:
+    gh_answers(monkeypatch, [
+        (0, '{"status": "in_progress", "conclusion": ""}'),
+        (1, ""),
+        (0, '{"status": "completed", "conclusion": "success"}'),
+    ])
+
+    assert release.run_conclusion(42) == "success"
+
+
+def test_wait_for_release_workflow_stops_when_the_run_fails(monkeypatch) -> None:
+    monkeypatch.setattr(release, "release_run", lambda _tag: {"databaseId": 42, "url": "https://run/42"})
+    gh_answers(monkeypatch, [(0, '{"status": "completed", "conclusion": "failure"}')])
+
+    with pytest.raises(release.ReleaseError, match="ended with 'failure': https://run/42"):
+        release.wait_for_release_workflow("0.6.1")
+
+
+def test_run_conclusion_stops_when_the_run_does_not_complete(monkeypatch) -> None:
+    monkeypatch.setattr(release, "RUN_POLLS", 2)
+    gh_answers(monkeypatch, [(0, '{"status": "queued", "conclusion": ""}')] * 2)
+
+    with pytest.raises(release.ReleaseError, match="did not complete"):
+        release.run_conclusion(42)
