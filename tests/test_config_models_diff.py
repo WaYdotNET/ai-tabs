@@ -4,8 +4,10 @@ from pathlib import Path
 
 import pytest
 from factories import agent_pane, shell_pane, tab
+from typer.testing import CliRunner
 
 from ai_tabs import config
+from ai_tabs.cli import app
 from ai_tabs.diff import changes
 from ai_tabs.models import Window, windows_from_data
 
@@ -52,6 +54,11 @@ def test_settings_parse_folders_booleans_and_numbers():
     assert config.parse_setting("export_dir", "/vault/./tabs") == "/vault/tabs"
     assert config.parse_setting("export_latest", "TRUE") is True
     assert config.parse_setting("snapshot_interval", "120") == 120
+    assert config.parse_setting("backup_times", "17:00, 9:00") == ["09:00", "17:00"]
+
+
+def test_backup_times_drop_a_repeated_time():
+    assert config.parse_setting("backup_times", "09:00,9:00") == ["09:00"]
 
 
 @pytest.mark.parametrize(("key", "text", "message"), [
@@ -59,10 +66,46 @@ def test_settings_parse_folders_booleans_and_numbers():
     ("export_latest", "yes", "export_latest must be true or false"),
     ("backup_keep", "0", "backup_keep must be a whole number greater than 0"),
     ("history_days", "-3", "history_days must be a whole number greater than 0"),
+    ("backup_times", "25:00", "backup_times must be a time of day from 00:00 to 23:59"),
+    ("backup_times", "09:00,12:60", "backup_times must be a time of day from 00:00 to 23:59"),
+    ("backup_times", "noon", "backup_times must be a time of day from 00:00 to 23:59"),
+    ("backup_times", "09:00,", "backup_times must be a time of day from 00:00 to 23:59"),
+    ("backup_times", "", "backup_times must hold at least one time of day HH:MM"),
 ])
 def test_invalid_settings_are_refused(key, text, message):
     with pytest.raises(ValueError, match=message):
         config.parse_setting(key, text)
+
+
+def test_backup_times_default_to_9_00_and_17_00():
+    assert config.settings().backup_times == ["09:00", "17:00"]
+
+
+def test_config_set_saves_backup_times_as_a_list():
+    result = CliRunner().invoke(app, ["config", "set", "backup_times", "9:00,17:00"])
+
+    assert result.exit_code == 0
+    assert config.read_config() == {"backup_times": ["09:00", "17:00"]}
+
+
+def test_config_set_prints_backup_times_as_text_with_commas():
+    result = CliRunner().invoke(app, ["config", "set", "backup_times", "9:00,17:00"])
+
+    assert result.output == "backup_times = 09:00,17:00\n"
+
+
+def test_config_set_refuses_an_hour_after_23():
+    result = CliRunner().invoke(app, ["config", "set", "backup_times", "25:00"])
+
+    assert result.exit_code == 2
+    assert config.read_config() == {}
+
+
+def test_config_set_refuses_empty_backup_times():
+    result = CliRunner().invoke(app, ["config", "set", "backup_times", ""])
+
+    assert result.exit_code == 2
+    assert config.read_config() == {}
 
 
 def test_snapshot_data_from_before_profiles_and_layouts_still_loads():

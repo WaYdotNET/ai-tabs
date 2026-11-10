@@ -1,7 +1,6 @@
 """Watch iTerm2 and take a snapshot when a tab, a window or a pane opens or closes."""
 
 import asyncio
-import dataclasses
 import sqlite3
 import sys
 import time
@@ -15,7 +14,7 @@ from websockets.exceptions import WebSocketException
 
 from . import store
 from .iterm import iterm_is_running, read_windows
-from .models import Tab, Window
+from .models import Window, without_sizes
 from .snapshot import record_snapshot
 
 PREFIX = "watch: "
@@ -61,21 +60,6 @@ def log(text: str) -> None:
     print(f"{PREFIX}{datetime.now():%H:%M:%S} {text}")
 
 
-def without_pane_sizes(tab: Tab) -> Tab:
-    """Return a copy of the tab with no size on its panes."""
-    panes = [dataclasses.replace(pane, columns=None, rows=None) for pane in tab.panes]
-    return dataclasses.replace(tab, panes=panes)
-
-
-def without_size(window: Window) -> Window:
-    """Return a copy of the window with no frame and no pane sizes.
-
-    A resize of a window also changes the size of each pane in it.
-    """
-    tabs = [without_pane_sizes(tab) for tab in window.tabs]
-    return dataclasses.replace(window, frame=[], tabs=tabs)
-
-
 def same_window_except_resize(old: Window, new: Window) -> bool:
     """Return True when the two windows differ only in their frame and in the pane sizes that follow it.
 
@@ -83,7 +67,7 @@ def same_window_except_resize(old: Window, new: Window) -> bool:
     """
     if old.frame == new.frame:
         return old == new
-    return without_size(old) == without_size(new)
+    return without_sizes(old) == without_sizes(new)
 
 
 def same_except_resize(old: list[Window], new: list[Window]) -> bool:
@@ -111,9 +95,8 @@ def record_layout(windows: list[Window]) -> None:
     if is_resize_only_change(windows):
         log("No change (frame only)")
         return
-    new_id = record_snapshot(windows, datetime.now())
-    status = f"Wrote snapshot {new_id}" if new_id else "No change"
-    log(f"{status} ({pane_total(windows)} panes)")
+    recorded = record_snapshot(windows, datetime.now())
+    log(f"{recorded.status()} ({pane_total(windows)} panes)")
 
 
 async def watch_snapshot(connection: iterm2.Connection) -> None:

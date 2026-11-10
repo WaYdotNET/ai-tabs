@@ -212,8 +212,10 @@ $ ai-tabs sessions [OPTIONS]
 
 Write a backup of the snapshot database now, list the backups, or restore one.
 
-`snapshot` also writes one backup a day by itself. The backups go to `backup_dir` and only
-the newest `backup_keep` stay. `--restore` first writes a safety copy of the live database.
+`snapshot` also writes the backup of the day by itself, at its first run at or after each time of
+`backup_times`. When the data did not change since the newest backup, that backup only gets the
+name and the time of now. The backups go to `backup_dir` and only the newest `backup_keep`
+stay. `--restore` first writes a safety copy of the live database.
 
 **Usage**:
 
@@ -350,8 +352,8 @@ $ ai-tabs config set [OPTIONS] {key} {value}
 
 **Arguments**:
 
-* `key`: One of: data_dir, export_dir, export_latest, backup_dir, backup_keep, history_days, snapshot_interval, splash, theme, watch.  [required]
-* `value`: A folder, true or false, or a whole number, as the setting needs.  [required]
+* `key`: One of: data_dir, export_dir, export_latest, backup_dir, backup_keep, backup_times, history_days, snapshot_interval, splash, theme, watch.  [required]
+* `value`: A folder, true or false, a whole number, or times such as 09:00,17:00, as the setting needs.  [required]
 
 **Options**:
 
@@ -369,7 +371,7 @@ $ ai-tabs config unset [OPTIONS] {key}
 
 **Arguments**:
 
-* `key`: One of: data_dir, export_dir, export_latest, backup_dir, backup_keep, history_days, snapshot_interval, splash, theme, watch.  [required]
+* `key`: One of: data_dir, export_dir, export_latest, backup_dir, backup_keep, backup_times, history_days, snapshot_interval, splash, theme, watch.  [required]
 
 **Options**:
 

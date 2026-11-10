@@ -77,3 +77,11 @@ def test_settings_window_cancel_keeps_the_configuration_file():
     run_settings("escape")
 
     assert config.read_config() == {}
+
+
+def test_settings_window_keeps_the_saved_backup_times_as_a_list():
+    config.write_config({"backup_times": ["08:00", "18:00"]})
+
+    run_settings("ctrl+s")
+
+    assert config.read_config() == {"backup_times": ["08:00", "18:00"], "history_days": 90}

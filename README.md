@@ -123,6 +123,7 @@ A setting takes its value from, in order of priority:
 | `export_latest` | `false` | Rewrite `export_dir/latest.md` after every new snapshot |
 | `backup_dir` | `data_dir/backups` | Folder of the daily backups |
 | `backup_keep` | `7` | How many daily backups stay |
+| `backup_times` | `09:00,17:00` | Times of day (`HH:MM`, with commas between them) when the interval agent prunes the old snapshots and writes the daily backup |
 | `history_days` | `30` | How many days the unpinned snapshots stay |
 | `snapshot_interval` | `300` | Seconds between two snapshots. Run `ai-tabs install` after a change |
 | `splash` | `true` | Show the logo for a moment when the restore screen opens, in iTerm2 |
@@ -140,7 +141,7 @@ ai-tabs config set export_latest true
 
 ## Data
 
-- `ai-tabs snapshot` writes one backup a day with SQLite `VACUUM INTO`, which makes a consistent copy. `ai-tabs backup --restore DATE` checks the backup, writes a safety copy of the current database (`backups/ai-tabs-before-restore-*.sqlite`, never deleted by the daily prune), then copies the backup into the database with the SQLite online backup API.
+- At its first run at or after each time of `backup_times`, the interval agent (`ai-tabs snapshot`) deletes the snapshots older than `history_days`, then writes the backup of the day with SQLite `VACUUM INTO`, which makes a consistent copy. It does this also when the tabs did not change. If the Mac sleeps at that time, the agent does this at its first run after the wake. One backup file stays for each day, so the 17:00 run replaces the file of the morning. If the database holds the same data as the newest backup, the agent writes no new copy: that backup only gets the name of the day and the time of now. `ai-tabs backup --restore DATE` checks the backup, writes a safety copy of the current database (`backups/ai-tabs-before-restore-*.sqlite`, never deleted by the daily prune), then copies the backup into the database with the SQLite online backup API.
 - `ai-tabs export` writes one file per snapshot: `export_dir/YYYY-MM-DD/HH-MM-SS.md`. Each file has a front matter for Obsidian properties and Dataview, the changes, a table of the panes and the resume commands. Nothing reads the exports back: the database stays the only source.
 - Both launchd agents log to `~/Library/Logs/ai-tabs.log`. The lines of the watcher start with `watch:`.
 

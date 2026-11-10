@@ -9,11 +9,11 @@ from datetime import datetime
 from pathlib import Path
 
 import pytest
-from factories import shell_pane, tab, windows_with_tabs
+from factories import shell_pane, sized_window, tab, windows_with_tabs
 
 from ai_tabs import cli, snapshot, store, watch
 from ai_tabs.config import LAUNCHCTL, write_config
-from ai_tabs.models import Pane, Window
+from ai_tabs.models import Window
 from ai_tabs.watch import Debouncer, same_except_resize
 
 QUIET = 0.05
@@ -150,14 +150,9 @@ def test_a_second_writer_waits_for_the_lock_and_then_finds_no_change(monkeypatch
             time.sleep(0.2)
             waited = not second.done()
             snapshot.store_if_changed(windows, datetime(2026, 11, 3, 10, 0, 0))
-        second_id = second.result(timeout=5)
+        second_recorded = second.result(timeout=5)
 
-    assert (waited, second_id, len(store.summaries())) == (True, None, 1)
-
-
-def sized_window(frame: list[float], columns: int, rows: int) -> Window:
-    """Return one window with one shell tab, whose pane has the size `columns` x `rows`."""
-    return Window(frame, [tab(Pane("zsh", "/dev/ttys001", "/work", columns=columns, rows=rows))])
+    assert (waited, second_recorded, len(store.summaries())) == (True, snapshot.UNCHANGED, 1)
 
 
 def test_windows_that_differ_only_in_frames_count_as_the_same():
@@ -224,13 +219,16 @@ def test_the_watcher_stores_nothing_when_a_window_only_changes_its_size(read_by_
     assert (len(store.summaries()), capsys.readouterr().out.endswith("No change (frame only)\n")) == (1, True)
 
 
-def test_the_watcher_stores_a_snapshot_after_a_divider_drag(read_by_watcher):
-    snapshot.store_if_changed([sized_window([0, 0, 800, 600], 96, 25)], datetime(2026, 11, 3, 10, 0, 0))
+def test_the_watcher_updates_the_latest_snapshot_after_a_divider_drag(read_by_watcher, capsys):
+    first = snapshot.store_if_changed([sized_window([0, 0, 800, 600], 96, 25)], datetime(2026, 11, 3, 10, 0, 0))
     read_by_watcher([sized_window([0, 0, 800, 600], 46, 25)])
 
     asyncio.run(watch.logged_snapshot(None))
 
-    assert len(store.summaries()) == 2
+    latest = store.latest_snapshot()
+    assert (len(store.summaries()), latest.summary.id, latest.windows) == (
+        1, first.snapshot_id, [sized_window([0, 0, 800, 600], 46, 25)])
+    assert "Updated snapshot 2026-11-03/10-00-00 (sizes only) (1 panes)" in capsys.readouterr().out
 
 
 def test_the_watcher_stores_a_snapshot_when_a_tab_opens(read_by_watcher, capsys):

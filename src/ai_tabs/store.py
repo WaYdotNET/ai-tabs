@@ -4,12 +4,14 @@ A snapshot ID is `YYYY-MM-DD/HH-MM-SS`, the local time when the snapshot was tak
 sort in time order. `latest` is an alias of the newest snapshot.
 """
 
+import hashlib
 import json
+import os
 import sqlite3
 from collections.abc import Iterator
 from contextlib import closing, contextmanager
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, time, timedelta
 from pathlib import Path
 
 from .config import settings
@@ -137,6 +139,16 @@ def set_pin(wanted: str, reason: str | None) -> bool:
         return db.execute("UPDATE snapshots SET pinned = ? WHERE id = ?", (reason, wanted)).rowcount == 1
 
 
+def update_windows(wanted: str, windows: list[Window]) -> bool:
+    """Replace the windows of an unpinned snapshot. Return False when the ID is unknown or the snapshot has a pin.
+
+    The ID, the time, the counts and the changes stay. Use this function only for windows with the same tabs.
+    """
+    with database() as db:
+        query = "UPDATE snapshots SET windows = ? WHERE id = ? AND pinned IS NULL"
+        return db.execute(query, (windows_to_json(windows), wanted)).rowcount == 1
+
+
 def prune(today: date) -> int:
     """Delete the snapshots older than `history_days`. Return how many went.
 
@@ -184,13 +196,82 @@ def write_backup(day: date) -> Path:
     return target
 
 
-def backup_if_due(day: date) -> Path | None:
-    """Write the backup of the day when it does not exist yet. Return it, or None."""
-    return None if backup_path(day).exists() else write_backup(day)
+def backup_slot(moment: datetime) -> datetime | None:
+    """Return the latest time of `backup_times` on the day of the moment that is not after it, or None."""
+    started = [clock for clock in settings().backup_times if time.fromisoformat(clock) <= moment.time()]
+    if not started:
+        return None
+    return datetime.combine(moment.date(), time.fromisoformat(started[-1]))
+
+
+def maintenance_due(moment: datetime) -> bool:
+    """Tell if the maintenance is due: a time of `backup_times` started, and the day backup is older or missing."""
+    slot = backup_slot(moment)
+    if slot is None:
+        return False
+    target = backup_path(moment.date())
+    return not target.exists() or target.stat().st_mtime < slot.timestamp()
+
+
+def daily_backup(moment: datetime) -> Path:
+    """Write the backup of the day, or reuse the newest backup when it holds the same data. Return it.
+
+    The backup gets the moment as its modification time, also after a rename. A rename keeps the
+    old time, and without the new time `maintenance_due` finds the slot due again at each run.
+    """
+    target = backup_path(moment.date())
+    unchanged = unchanged_backup()
+    if unchanged is None:
+        write_backup(moment.date())
+    else:
+        unchanged.replace(target)
+    stamp = moment.timestamp()
+    os.utime(target, (stamp, stamp))
+    return target
+
+
+def unchanged_backup() -> Path | None:
+    """Return the newest backup when it holds the same data as the live database, else None."""
+    files = backup_files()
+    if files and backup_fingerprint(files[0]) == live_fingerprint():
+        return files[0]
+    return None
+
+
+def fingerprint(connection: sqlite3.Connection) -> str:
+    """Return a sha256 digest of the rows of every table, so that two databases with the same data match."""
+    digest = hashlib.sha256()
+    tables = connection.execute(
+        "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name").fetchall()
+    for (table,) in tables:
+        digest.update(table.encode())
+        # The first column is the primary key of each table, so the order does not depend on the file.
+        for row in connection.execute(f'SELECT * FROM "{table}" ORDER BY 1'):
+            digest.update(repr(tuple(row)).encode())
+    return digest.hexdigest()
+
+
+def live_fingerprint() -> str:
+    """Return the fingerprint of the live database."""
+    with database() as connection:
+        return fingerprint(connection)
+
+
+def backup_fingerprint(path: Path) -> str | None:
+    """Return the fingerprint of a backup opened read only, or None when it cannot be read."""
+    try:
+        with closing(sqlite3.connect(f"file:{path}?mode=ro", uri=True)) as connection:
+            return fingerprint(connection)
+    except sqlite3.DatabaseError:
+        return None
+
+
+def backup_files() -> list[Path]:
+    """Return the daily backups, newest first."""
+    return sorted(settings().backup_dir.glob("ai-tabs-????-??-??.sqlite"), reverse=True)
 
 
 def prune_backups() -> None:
     """Delete the oldest backups, so that only the newest `backup_keep` stay."""
-    backups = sorted(settings().backup_dir.glob("ai-tabs-????-??-??.sqlite"), reverse=True)
-    for old in backups[settings().backup_keep:]:
+    for old in backup_files()[settings().backup_keep:]:
         old.unlink()

@@ -26,3 +26,8 @@ def tab(*panes: Pane, title: str = "") -> Tab:
 def windows_with_tabs(count: int) -> list[Window]:
     """Return one window with `count` shell tabs, each on its own tty."""
     return [Window([0, 0, 800, 600], [tab(shell_pane(f"/dev/ttys{index:03}")) for index in range(count)])]
+
+
+def sized_window(frame: list[float], columns: int, rows: int) -> Window:
+    """Return one window with one shell tab, whose pane has the size `columns` x `rows`."""
+    return Window(frame, [tab(Pane("zsh", "/dev/ttys001", "/work", columns=columns, rows=rows))])

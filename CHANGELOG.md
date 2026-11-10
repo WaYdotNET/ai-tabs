@@ -4,6 +4,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Setting `backup_times`: a list of times of day (`HH:MM`), default `09:00,17:00`. At its first run at or after each of these times, the interval agent prunes the old snapshots and writes the backup of the day, also on a day without changes. If the Mac sleeps at that time, this occurs at the first run after the wake. One backup file stays for each day: a later run replaces the file of the day. Use `ai-tabs config set backup_times 09:00,17:00` or the settings window.
+
+### Changed
+
+- When the database did not change since the newest backup, the daily backup writes no new copy. The newest backup gets the date of today and the time of now.
+- A change of window frames or pane sizes only updates the newest snapshot. It does not add a snapshot. A pinned snapshot, or a snapshot from before the current boot, stays as it is.
+- The watcher no longer prunes the snapshots or writes the backup.
+
 ## [0.5.0] - 2026-11-04
 
 ### Added

@@ -332,8 +332,10 @@ def backup(
 ) -> None:
     """Write a backup of the snapshot database now, list the backups, or restore one.
 
-    `snapshot` also writes one backup a day by itself. The backups go to `backup_dir` and only
-    the newest `backup_keep` stay. `--restore` first writes a safety copy of the live database.
+    `snapshot` also writes the backup of the day by itself, at its first run at or after each time of
+    `backup_times`. When the data did not change since the newest backup, that backup only gets the
+    name and the time of now. The backups go to `backup_dir` and only the newest `backup_keep`
+    stay. `--restore` first writes a safety copy of the live database.
     """
     if list_all:
         print_backups()
@@ -522,7 +524,8 @@ def config_show(context: typer.Context) -> None:
 @config_app.command("set")
 def config_set(
     key: Annotated[str, typer.Argument(help=f"One of: {', '.join(SETTING_KINDS)}.")],
-    value: Annotated[str, typer.Argument(help="A folder, true or false, or a whole number, as the setting needs.")],
+    value: Annotated[str, typer.Argument(
+        help="A folder, true or false, a whole number, or times such as 09:00,17:00, as the setting needs.")],
 ) -> None:
     """Set a setting in the configuration file. A folder becomes an absolute path."""
     try:

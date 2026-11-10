@@ -8,6 +8,7 @@ configuration file is `$XDG_CONFIG_HOME/ai-tabs/config.toml`, or `~/.config/ai-t
 
 import json
 import os
+import re
 import shutil
 import tomllib
 from dataclasses import dataclass
@@ -45,6 +46,7 @@ SETTING_KINDS = {
     "export_latest": "true or false",
     "backup_dir": "folder",
     "backup_keep": "number",
+    "backup_times": "HH:MM list",
     "history_days": "number",
     "snapshot_interval": "seconds",
     "splash": "true or false",
@@ -57,12 +59,14 @@ SETTING_HELP = {
     "export_latest": "rewrite export_dir/latest.md after every new snapshot",
     "backup_dir": "folder of the daily database backups",
     "backup_keep": "how many daily backups stay",
+    "backup_times": "times of day when the interval agent prunes old snapshots and writes the daily backup",
     "history_days": "how many days the unpinned snapshots stay",
     "snapshot_interval": "seconds between two snapshots of the launchd agent (run `ai-tabs install` after a change)",
     "splash": "show the logo for a moment when the restore screen opens",
     "theme": "colors of the restore screen; auto follows the macOS appearance",
     "watch": "take a snapshot when a tab or window opens or closes (run `ai-tabs install` after a change)",
 }
+DEFAULT_BACKUP_TIMES = ["09:00", "17:00"]
 
 
 @dataclass(frozen=True)
@@ -74,6 +78,7 @@ class Settings:
     export_latest: bool
     backup_dir: Path
     backup_keep: int
+    backup_times: list[str]
     history_days: int
     snapshot_interval: int
     splash: bool
@@ -109,6 +114,7 @@ def settings() -> Settings:
         export_latest=bool(config.get("export_latest", False)),
         backup_dir=optional_path(config.get("backup_dir")) or data_dir / "backups",
         backup_keep=int(config.get("backup_keep", 7)),
+        backup_times=parse_clocks("backup_times", setting_text(config.get("backup_times", DEFAULT_BACKUP_TIMES))),
         history_days=int(config.get("history_days", 30)),
         snapshot_interval=int(config.get("snapshot_interval", 300)),
         splash=bool(config.get("splash", True)),
@@ -137,7 +143,7 @@ def setting_source(key: str) -> str:
     return "file" if key in read_config() else "default"
 
 
-def parse_setting(key: str, text: str) -> str | int | bool:
+def parse_setting(key: str, text: str) -> str | int | bool | list[str]:
     """Return the value of a setting from its text, or raise ValueError when it is not valid."""
     kind = SETTING_KINDS.get(key)
     if kind is None:
@@ -172,12 +178,32 @@ def parse_positive(key: str, text: str) -> int:
     return int(text)
 
 
+CLOCK_PATTERN = re.compile(r"(\d{1,2}):(\d{2})")
+
+
+def parse_clock(key: str, text: str) -> str:
+    """Return a time of day from 00:00 to 23:59 as `HH:MM`, or raise ValueError."""
+    match = CLOCK_PATTERN.fullmatch(text)
+    if match is None or int(match[1]) > 23 or int(match[2]) > 59:
+        raise ValueError(f"{key} must be a time of day from 00:00 to 23:59, not {text!r}")
+    return f"{int(match[1]):02}:{match[2]}"
+
+
+def parse_clocks(key: str, text: str) -> list[str]:
+    """Return comma-separated times of day as sorted `HH:MM` texts without duplicates, or raise ValueError."""
+    parts = [part.strip() for part in text.split(",")]
+    if parts == [""]:
+        raise ValueError(f"{key} must hold at least one time of day HH:MM, not {text!r}")
+    return sorted({parse_clock(key, part) for part in parts})
+
+
 PARSERS = {
     "folder": parse_folder,
     "true or false": parse_bool,
     "number": parse_positive,
     "seconds": parse_positive,
     "auto, dark or light": parse_theme,
+    "HH:MM list": parse_clocks,
 }
 
 
@@ -201,4 +227,8 @@ def unset_config(key: str) -> None:
 
 def setting_text(value: object) -> str:
     """Return a setting value as the text that `ai-tabs config set` accepts."""
-    return str(value).lower() if isinstance(value, bool) else str(value)
+    if isinstance(value, bool):
+        return str(value).lower()
+    if isinstance(value, list):
+        return ",".join(value)
+    return str(value)

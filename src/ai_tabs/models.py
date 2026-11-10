@@ -1,7 +1,7 @@
 """The snapshot data: windows, tabs, panes and the agent sessions that run in them."""
 
 import json
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 
 
 @dataclass
@@ -73,6 +73,26 @@ def tab_count(windows: list[Window]) -> int:
 def agent_count(windows: list[Window]) -> int:
     """Return the number of panes that run an agent session."""
     return sum(1 for _, tab in positioned_tabs(windows) for pane in tab.panes if pane.agent)
+
+
+def without_pane_sizes(tab: Tab) -> Tab:
+    """Return a copy of the tab with no size on its panes."""
+    panes = [replace(pane, columns=None, rows=None) for pane in tab.panes]
+    return replace(tab, panes=panes)
+
+
+def without_sizes(window: Window) -> Window:
+    """Return a copy of the window with no frame and no pane sizes.
+
+    A resize of a window also changes the size of each pane in it.
+    """
+    tabs = [without_pane_sizes(tab) for tab in window.tabs]
+    return replace(window, frame=[], tabs=tabs)
+
+
+def differ_only_in_sizes(old: list[Window], new: list[Window]) -> bool:
+    """Return True when the windows are the same except for window frames and pane sizes."""
+    return [without_sizes(window) for window in old] == [without_sizes(window) for window in new]
 
 
 def pane_from_data(raw: dict) -> Pane:
