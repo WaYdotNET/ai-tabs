@@ -4,6 +4,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-11-10
+
 ### Added
 
 - Setting `backup_times`: a list of times of day (`HH:MM`), default `09:00,17:00`. At its first run at or after each of these times, the interval agent prunes the old snapshots and writes the backup of the day, also on a day without changes. If the Mac sleeps at that time, this occurs at the first run after the wake. One backup file stays for each day: a later run replaces the file of the day. Use `ai-tabs config set backup_times 09:00,17:00` or the settings window.
@@ -110,7 +112,8 @@ First release.
 - Markdown export, daily backups, `config` command.
 - Dark and light theme.
 
-[Unreleased]: https://github.com/WaYdotNET/ai-tabs/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/WaYdotNET/ai-tabs/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/WaYdotNET/ai-tabs/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/WaYdotNET/ai-tabs/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/WaYdotNET/ai-tabs/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/WaYdotNET/ai-tabs/compare/v0.3.2...v0.4.0
