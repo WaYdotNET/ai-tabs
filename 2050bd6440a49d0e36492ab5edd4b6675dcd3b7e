@@ -1,0 +1,523 @@
+{
+  "schema_version": "ai-attribution/1.2.0",
+  "base_commit_sha": "c28dfe2f3bdf4160e24c8316b31b6169c8f8d8e3",
+  "sessions": {
+    "01a1c5b0-2d34-74a8-8281-f4d062a3668d": {
+      "agent": {
+        "tool": "omp",
+        "model": "anthropic/claude-opus-5-5"
+      },
+      "human_author": "Carlo Bertini \u003cwaydotnet@gmail.com\u003e"
+    },
+    "01a1c5bd-68b8-7212-af16-d1b1f910df21": {
+      "agent": {
+        "tool": "omp",
+        "model": "anthropic/claude-opus-5-5"
+      },
+      "human_author": "Carlo Bertini \u003cwaydotnet@gmail.com\u003e"
+    },
+    "01a1c5bd-68bf-71b5-8054-81bf83ab86ae": {
+      "agent": {
+        "tool": "omp",
+        "model": "anthropic/claude-opus-5-5"
+      },
+      "human_author": "Carlo Bertini \u003cwaydotnet@gmail.com\u003e"
+    },
+    "01a1c5c7-f13e-7293-9f33-ef775b8579d8": {
+      "agent": {
+        "tool": "omp",
+        "model": "anthropic/claude-opus-5-5"
+      },
+      "human_author": "Carlo Bertini \u003cwaydotnet@gmail.com\u003e"
+    }
+  },
+  "files": {
+    "CHANGELOG.md": {
+      "01a1c5b0-2d34-74a8-8281-f4d062a3668d::1006bb506494": [
+        "7-8",
+        "10-12",
+        "14-16"
+      ],
+      "01a1c5c7-f13e-7293-9f33-ef775b8579d8::d0128d2f9413": [
+        9,
+        13
+      ]
+    },
+    "README.md": {
+      "01a1c5c7-f13e-7293-9f33-ef775b8579d8::8a4dc591e303": [
+        144
+      ],
+      "01a1c5c7-f13e-7293-9f33-ef775b8579d8::d0128d2f9413": [
+        126
+      ]
+    },
+    "src/ai_tabs/cli.py": {
+      "01a1c5bd-68bf-71b5-8054-81bf83ab86ae::10a280ace500": [
+        527
+      ],
+      "01a1c5c7-f13e-7293-9f33-ef775b8579d8::a2b1b07b7389": [
+        528
+      ],
+      "01a1c5c7-f13e-7293-9f33-ef775b8579d8::abf7436d6308": [
+        "337-338"
+      ],
+      "01a1c5c7-f13e-7293-9f33-ef775b8579d8::fba94351743a": [
+        "335-336"
+      ]
+    },
+    "src/ai_tabs/config.py": {
+      "01a1c5bd-68bf-71b5-8054-81bf83ab86ae::d335b1175760": [
+        11,
+        "181-191"
+      ],
+      "01a1c5c7-f13e-7293-9f33-ef775b8579d8::a139a80d7301": [
+        49,
+        62,
+        69,
+        81,
+        117,
+        146,
+        "192-199",
+        206,
+        "230-234"
+      ]
+    },
+    "src/ai_tabs/models.py": {
+      "01a1c5bd-68b8-7212-af16-d1b1f910df21::9a4d14181d32": [
+        4,
+        "76-95"
+      ]
+    },
+    "src/ai_tabs/snapshot.py": {
+      "01a1c5b0-2d34-74a8-8281-f4d062a3668d::1985fd5a23b1": [
+        135,
+        137,
+        142,
+        145,
+        "147-150",
+        152,
+        155,
+        157,
+        "159-160",
+        "163-166",
+        168
+      ],
+      "01a1c5bd-68b8-7212-af16-d1b1f910df21::22ac94ba43fd": [
+        7,
+        9,
+        17,
+        19,
+        "21-34",
+        "36-43",
+        "87-88",
+        91,
+        "93-94",
+        "96-97",
+        "100-129",
+        134,
+        151,
+        153
+      ],
+      "01a1c5bd-68bf-71b5-8054-81bf83ab86ae::ab6cb478a61f": [
+        "138-141",
+        "143-144"
+      ],
+      "01a1c5c7-f13e-7293-9f33-ef775b8579d8::fba94351743a": [
+        146
+      ]
+    },
+    "src/ai_tabs/store.py": {
+      "01a1c5bd-68b8-7212-af16-d1b1f910df21::89bc040bed62": [
+        "142-144",
+        "146-151"
+      ],
+      "01a1c5bd-68b8-7212-af16-d1b1f910df21::d7a2d02c6035": [
+        145
+      ],
+      "01a1c5bd-68bf-71b5-8054-81bf83ab86ae::f3be899c66e1": [
+        7,
+        207,
+        215,
+        218,
+        235,
+        "239-273",
+        276
+      ],
+      "01a1c5c7-f13e-7293-9f33-ef775b8579d8::2c9bda360c39": [
+        208
+      ],
+      "01a1c5c7-f13e-7293-9f33-ef775b8579d8::ae124edd2e01": [
+        "219-220"
+      ],
+      "01a1c5c7-f13e-7293-9f33-ef775b8579d8::d094b0843c3c": [
+        9,
+        14,
+        "199-206",
+        "209-214",
+        "216-217",
+        "221-230",
+        "233-234",
+        "236-238"
+      ]
+    },
+    "src/ai_tabs/watch.py": {
+      "01a1c5bd-68b8-7212-af16-d1b1f910df21::4d78ba0b79cc": [
+        17,
+        70,
+        "98-99"
+      ]
+    },
+    "tests/factories.py": {
+      "01a1c5bd-68b8-7212-af16-d1b1f910df21::d7a2d02c6035": [
+        "29-33"
+      ]
+    },
+    "tests/test_config_models_diff.py": {
+      "01a1c5bd-68bf-71b5-8054-81bf83ab86ae::2cb1a9f99132": [
+        109
+      ],
+      "01a1c5bd-68bf-71b5-8054-81bf83ab86ae::cb68f8355558": [
+        7,
+        10,
+        "78-79",
+        82,
+        "86-87",
+        "95-97",
+        "106-108"
+      ],
+      "01a1c5c7-f13e-7293-9f33-ef775b8579d8::c8153ebbb02d": [
+        "57-58",
+        "60-61",
+        63,
+        "69-73",
+        "80-81",
+        "84-85",
+        "88-94",
+        "98-105"
+      ]
+    },
+    "tests/test_export_and_settings_screen.py": {
+      "01a1c5c7-f13e-7293-9f33-ef775b8579d8::f0b108eea28c": [
+        "80-87"
+      ]
+    },
+    "tests/test_maintenance.py": {
+      "01a1c5bd-68bf-71b5-8054-81bf83ab86ae::007dfbc30f99": [
+        "1-2",
+        "4-28",
+        "30-38",
+        "40-43",
+        "46-54",
+        "56-57",
+        59,
+        "61-62"
+      ],
+      "01a1c5c7-f13e-7293-9f33-ef775b8579d8::0a496b7e70df": [
+        "63-72"
+      ],
+      "01a1c5c7-f13e-7293-9f33-ef775b8579d8::d8642ad12e29": [
+        3,
+        29,
+        39,
+        "44-45",
+        55,
+        58,
+        60
+      ]
+    },
+    "tests/test_snapshot.py": {
+      "01a1c5bd-68b8-7212-af16-d1b1f910df21::7e591dd08b36": [
+        5,
+        47,
+        53,
+        62,
+        "90-162"
+      ]
+    },
+    "tests/test_store.py": {
+      "01a1c5bd-68bf-71b5-8054-81bf83ab86ae::5ef8e5584b21": [
+        "8-9",
+        "19-23",
+        "101-102",
+        106,
+        "109-112",
+        116,
+        "118-119",
+        126,
+        133,
+        137,
+        "139-140",
+        146,
+        171,
+        173,
+        "175-178",
+        180,
+        186,
+        "190-194",
+        "196-200",
+        "212-216",
+        "218-226",
+        "228-230"
+      ],
+      "01a1c5c7-f13e-7293-9f33-ef775b8579d8::c70b0b7944bc": [
+        3,
+        "99-100",
+        "103-105",
+        "107-108",
+        "113-115",
+        117,
+        "120-122",
+        124,
+        "127-132",
+        "134-136",
+        138,
+        "141-145",
+        "147-170",
+        172,
+        174,
+        179,
+        "181-185",
+        "187-189",
+        195,
+        "201-211",
+        217,
+        227
+      ]
+    },
+    "tests/test_watch.py": {
+      "01a1c5bd-68b8-7212-af16-d1b1f910df21::b974eab76eb5": [
+        12,
+        16,
+        153,
+        155,
+        "222-223",
+        "228-231"
+      ]
+    }
+  },
+  "deletions": {
+    "CHANGELOG.md": {
+      "01a1c5c7-f13e-7293-9f33-ef775b8579d8::d0128d2f9413": {
+        "total": 2
+      }
+    },
+    "README.md": {
+      "01a1c5bd-68bf-71b5-8054-81bf83ab86ae::4ffa5eee831f": {
+        "total": 1
+      },
+      "01a1c5c7-f13e-7293-9f33-ef775b8579d8::8a4dc591e303": {
+        "total": 1
+      },
+      "01a1c5c7-f13e-7293-9f33-ef775b8579d8::d0128d2f9413": {
+        "total": 2
+      }
+    },
+    "src/ai_tabs/cli.py": {
+      "01a1c5bd-68bf-71b5-8054-81bf83ab86ae::0b711699c781": {
+        "total": 2
+      },
+      "01a1c5bd-68bf-71b5-8054-81bf83ab86ae::10a280ace500": {
+        "total": 1
+      },
+      "01a1c5bd-68bf-71b5-8054-81bf83ab86ae::f1d97ffcdef6": {
+        "total": 3
+      },
+      "01a1c5c7-f13e-7293-9f33-ef775b8579d8::2129991c93b1": {
+        "total": 1
+      },
+      "01a1c5c7-f13e-7293-9f33-ef775b8579d8::a2b1b07b7389": {
+        "total": 1
+      },
+      "01a1c5c7-f13e-7293-9f33-ef775b8579d8::abf7436d6308": {
+        "total": 2
+      },
+      "01a1c5c7-f13e-7293-9f33-ef775b8579d8::fba94351743a": {
+        "total": 3
+      }
+    },
+    "src/ai_tabs/config.py": {
+      "01a1c5c7-f13e-7293-9f33-ef775b8579d8::a139a80d7301": {
+        "total": 7
+      }
+    },
+    "src/ai_tabs/models.py": {
+      "01a1c5bd-68b8-7212-af16-d1b1f910df21::9a4d14181d32": {
+        "total": 1
+      }
+    },
+    "src/ai_tabs/snapshot.py": {
+      "01a1c5b0-2d34-74a8-8281-f4d062a3668d::1985fd5a23b1": {
+        "total": 11
+      },
+      "01a1c5bd-68b8-7212-af16-d1b1f910df21::22ac94ba43fd": {
+        "total": 10
+      },
+      "01a1c5bd-68bf-71b5-8054-81bf83ab86ae::ab6cb478a61f": {
+        "total": 1
+      },
+      "01a1c5c7-f13e-7293-9f33-ef775b8579d8::fba94351743a": {
+        "total": 1
+      }
+    },
+    "src/ai_tabs/store.py": {
+      "01a1c5bd-68b8-7212-af16-d1b1f910df21::d7a2d02c6035": {
+        "total": 1
+      },
+      "01a1c5bd-68bf-71b5-8054-81bf83ab86ae::f3be899c66e1": {
+        "total": 5
+      },
+      "01a1c5c7-f13e-7293-9f33-ef775b8579d8::2c9bda360c39": {
+        "total": 1
+      },
+      "01a1c5c7-f13e-7293-9f33-ef775b8579d8::ae124edd2e01": {
+        "total": 3
+      },
+      "01a1c5c7-f13e-7293-9f33-ef775b8579d8::d094b0843c3c": {
+        "total": 15
+      }
+    },
+    "src/ai_tabs/watch.py": {
+      "01a1c5bd-68b8-7212-af16-d1b1f910df21::4d78ba0b79cc": {
+        "total": 21
+      }
+    },
+    "tests/test_config_models_diff.py": {
+      "01a1c5bd-68bf-71b5-8054-81bf83ab86ae::2cb1a9f99132": {
+        "total": 1
+      },
+      "01a1c5c7-f13e-7293-9f33-ef775b8579d8::c8153ebbb02d": {
+        "total": 10
+      }
+    },
+    "tests/test_maintenance.py": {
+      "01a1c5c7-f13e-7293-9f33-ef775b8579d8::d8642ad12e29": {
+        "total": 8
+      }
+    },
+    "tests/test_snapshot.py": {
+      "01a1c5bd-68b8-7212-af16-d1b1f910df21::7e591dd08b36": {
+        "total": 4
+      }
+    },
+    "tests/test_store.py": {
+      "01a1c5bd-68bf-71b5-8054-81bf83ab86ae::5ef8e5584b21": {
+        "total": 4
+      },
+      "01a1c5c7-f13e-7293-9f33-ef775b8579d8::c70b0b7944bc": {
+        "total": 28
+      }
+    },
+    "tests/test_watch.py": {
+      "01a1c5bd-68b8-7212-af16-d1b1f910df21::b974eab76eb5": {
+        "total": 12
+      }
+    }
+  },
+  "turns": {
+    "01a1c5b0-2d34-74a8-8281-f4d062a3668d::1006bb506494": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1c5b0-2d34-74a8-8281-f4d062a3668d::1985fd5a23b1": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1c5bd-68b8-7212-af16-d1b1f910df21::22ac94ba43fd": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1c5bd-68b8-7212-af16-d1b1f910df21::4d78ba0b79cc": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1c5bd-68b8-7212-af16-d1b1f910df21::7e591dd08b36": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1c5bd-68b8-7212-af16-d1b1f910df21::89bc040bed62": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1c5bd-68b8-7212-af16-d1b1f910df21::9a4d14181d32": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1c5bd-68b8-7212-af16-d1b1f910df21::b974eab76eb5": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1c5bd-68b8-7212-af16-d1b1f910df21::d7a2d02c6035": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1c5bd-68bf-71b5-8054-81bf83ab86ae::007dfbc30f99": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1c5bd-68bf-71b5-8054-81bf83ab86ae::0b711699c781": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1c5bd-68bf-71b5-8054-81bf83ab86ae::10a280ace500": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1c5bd-68bf-71b5-8054-81bf83ab86ae::2cb1a9f99132": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1c5bd-68bf-71b5-8054-81bf83ab86ae::4ffa5eee831f": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1c5bd-68bf-71b5-8054-81bf83ab86ae::5ef8e5584b21": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1c5bd-68bf-71b5-8054-81bf83ab86ae::ab6cb478a61f": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1c5bd-68bf-71b5-8054-81bf83ab86ae::cb68f8355558": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1c5bd-68bf-71b5-8054-81bf83ab86ae::d335b1175760": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1c5bd-68bf-71b5-8054-81bf83ab86ae::f1d97ffcdef6": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1c5bd-68bf-71b5-8054-81bf83ab86ae::f3be899c66e1": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1c5c7-f13e-7293-9f33-ef775b8579d8::0a496b7e70df": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1c5c7-f13e-7293-9f33-ef775b8579d8::2129991c93b1": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1c5c7-f13e-7293-9f33-ef775b8579d8::2c9bda360c39": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1c5c7-f13e-7293-9f33-ef775b8579d8::8a4dc591e303": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1c5c7-f13e-7293-9f33-ef775b8579d8::a139a80d7301": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1c5c7-f13e-7293-9f33-ef775b8579d8::a2b1b07b7389": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1c5c7-f13e-7293-9f33-ef775b8579d8::abf7436d6308": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1c5c7-f13e-7293-9f33-ef775b8579d8::ae124edd2e01": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1c5c7-f13e-7293-9f33-ef775b8579d8::c70b0b7944bc": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1c5c7-f13e-7293-9f33-ef775b8579d8::c8153ebbb02d": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1c5c7-f13e-7293-9f33-ef775b8579d8::d0128d2f9413": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1c5c7-f13e-7293-9f33-ef775b8579d8::d094b0843c3c": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1c5c7-f13e-7293-9f33-ef775b8579d8::d8642ad12e29": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1c5c7-f13e-7293-9f33-ef775b8579d8::f0b108eea28c": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1c5c7-f13e-7293-9f33-ef775b8579d8::fba94351743a": {
+      "model": "anthropic/claude-opus-5-5"
+    }
+  }
+}
