@@ -1,0 +1,71 @@
+{
+  "schema_version": "ai-attribution/1.2.0",
+  "base_commit_sha": "e4ad94cf9fb760cb99679c4d2e011f08e04ed930",
+  "sessions": {
+    "01a1c5b0-2d34-74a8-8281-f4d062a3668d": {
+      "agent": {
+        "tool": "omp",
+        "model": "anthropic/claude-opus-5-5"
+      },
+      "human_author": "Carlo Bertini \u003cwaydotnet@gmail.com\u003e"
+    }
+  },
+  "files": {
+    "CHANGELOG.md": {
+      "01a1c5b0-2d34-74a8-8281-f4d062a3668d::1d96d920520d": [
+        "7-10"
+      ],
+      "01a1c5b0-2d34-74a8-8281-f4d062a3668d::95b32716071d": [
+        22
+      ]
+    },
+    "scripts/release.py": {
+      "01a1c5b0-2d34-74a8-8281-f4d062a3668d::3d08c329d9a7": [
+        "36-37",
+        200,
+        "202-203",
+        "205-225",
+        227,
+        "229-231"
+      ]
+    },
+    "tests/test_release_script.py": {
+      "01a1c5b0-2d34-74a8-8281-f4d062a3668d::ade43bfb0ccd": [
+        1,
+        4,
+        "117-154"
+      ]
+    }
+  },
+  "deletions": {
+    "CHANGELOG.md": {
+      "01a1c5b0-2d34-74a8-8281-f4d062a3668d::1d96d920520d": {
+        "total": 4
+      }
+    },
+    "scripts/release.py": {
+      "01a1c5b0-2d34-74a8-8281-f4d062a3668d::3d08c329d9a7": {
+        "total": 5
+      }
+    },
+    "tests/test_release_script.py": {
+      "01a1c5b0-2d34-74a8-8281-f4d062a3668d::ade43bfb0ccd": {
+        "total": 1
+      }
+    }
+  },
+  "turns": {
+    "01a1c5b0-2d34-74a8-8281-f4d062a3668d::1d96d920520d": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1c5b0-2d34-74a8-8281-f4d062a3668d::3d08c329d9a7": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1c5b0-2d34-74a8-8281-f4d062a3668d::95b32716071d": {
+      "model": "anthropic/claude-opus-5-5"
+    },
+    "01a1c5b0-2d34-74a8-8281-f4d062a3668d::ade43bfb0ccd": {
+      "model": "anthropic/claude-opus-5-5"
+    }
+  }
+}
